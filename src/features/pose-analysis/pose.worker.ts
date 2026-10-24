@@ -1,5 +1,6 @@
 /// <reference lib="webworker" />
 import { FilesetResolver, PoseLandmarker } from '@mediapipe/tasks-vision';
+import { bodyOnlyLandmarks } from './bodyLandmarks';
 let model: PoseLandmarker | undefined;
 self.onmessage = async ({
   data,
@@ -28,7 +29,11 @@ self.onmessage = async ({
     } else if (data.type === 'frame' && model) {
       try {
         const result = model.detectForVideo(data.bitmap, data.timestamp);
-        self.postMessage({ id: data.id, type: 'result', landmarks: result.landmarks[0] ?? [] });
+        self.postMessage({
+          id: data.id,
+          type: 'result',
+          landmarks: bodyOnlyLandmarks(result.landmarks[0] ?? []),
+        });
       } finally {
         data.bitmap.close();
       }

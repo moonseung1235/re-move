@@ -1,6 +1,7 @@
 import { openDB } from 'idb';
 import { defaultPlans } from '../features/exercise-tracking/exercises';
 import type { AppData } from '../types';
+import { bodyOnlyData } from '../features/pose-analysis/bodyLandmarks';
 const db = openDB('remove-private-v1', 1, {
   upgrade(database) {
     database.createObjectStore('data');
@@ -20,10 +21,17 @@ export const emptyData = (): AppData => ({
 export async function readData(user: string): Promise<AppData> {
   const stored = await (await db).get('data', user);
   const initial = emptyData();
-  return { ...initial, ...stored, preferences: { ...initial.preferences, ...stored?.preferences } };
+  const restored = {
+    ...initial,
+    ...stored,
+    preferences: { ...initial.preferences, ...stored?.preferences },
+  };
+  const cleaned = bodyOnlyData(restored);
+  if (stored && cleaned !== restored) await (await db).put('data', cleaned, user);
+  return cleaned;
 }
 export async function writeData(user: string, data: AppData) {
-  await (await db).put('data', data, user);
+  await (await db).put('data', bodyOnlyData(data), user);
 }
 export async function saveMedia(user: string, id: string, blob: Blob) {
   await (await db).put('media', blob, `${user}/${id}`);

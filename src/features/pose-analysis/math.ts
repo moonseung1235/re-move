@@ -1,4 +1,5 @@
-import type { Analysis, Exercise, Frame, Landmark, Side } from '../../types';
+import type { Analysis, Exercise, Frame, PoseLandmarks, Side } from '../../types';
+import { bodyOnlyFrames } from './bodyLandmarks';
 export const ANALYSIS_VERSION = '2d-projected-v1';
 export function jointAngle(
   a: { x: number; y: number },
@@ -13,7 +14,7 @@ export function jointAngle(
   return (Math.acos(Math.min(1, Math.max(-1, cosine))) * 180) / Math.PI;
 }
 export function measureFrame(
-  points: Landmark[],
+  points: PoseLandmarks,
   exercise: Exercise,
   side: Side,
   width: number,
@@ -37,7 +38,7 @@ export function measureFrame(
     )
   )
     return null;
-  const [a, b, c] = targets.map((p) => ({ x: p.x * width, y: p.y * height }));
+  const [a, b, c] = targets.map((p) => ({ x: p!.x * width, y: p!.y * height }));
   return jointAngle(a, b, c);
 }
 export function countRepetitions(frames: Frame[], thresholds?: [number, number]): number | null {
@@ -72,6 +73,6 @@ export function summarize(frames: Frame[], exercise: Exercise): Analysis {
     validFrames: angles.length,
     totalFrames: frames.length,
     repetitions: countRepetitions(frames, exercise.repThresholds),
-    frames,
+    frames: bodyOnlyFrames(frames),
   };
 }

@@ -43,7 +43,9 @@ export type Plan = {
   confirmed: boolean;
 };
 export type Landmark = { x: number; y: number; z: number; visibility: number; presence?: number };
-export type Frame = { time: number; angle: number | null; landmarks: Landmark[] };
+/** MediaPipe indices are preserved; excluded face slots 0–10 contain null. */
+export type PoseLandmarks = (Landmark | null)[];
+export type Frame = { time: number; angle: number | null; landmarks: PoseLandmarks };
 export type Analysis = {
   min: number;
   max: number;

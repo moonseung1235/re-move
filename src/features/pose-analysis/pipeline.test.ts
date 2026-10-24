@@ -6,6 +6,7 @@ import { seekVideo, videoDuration, waitForVideo } from './media';
 import { resampleCaptureFrames, sessionFromCapture, videoFile } from '../camera/recording';
 import { exercises } from '../exercise-tracking/exercises';
 import type { CaptureRecord, Frame } from '../../types';
+import { bodyOnlyLandmarks } from './bodyLandmarks';
 
 afterEach(() => vi.useRealTimers());
 
@@ -29,11 +30,11 @@ describe('worker responses and cancellation', () => {
     const bitmap = { close: vi.fn() } as unknown as ImageBitmap;
     const first = client.detect(bitmap, 100),
       second = client.detect(bitmap, 200);
-    const points = [{ x: 0.4, y: 0.6, z: 0, visibility: 0.9 }];
+    const points = Array.from({ length: 33 }, () => ({ x: 0.4, y: 0.6, z: 0, visibility: 0.9 }));
     engine.onmessage!({ data: { id: 3, type: 'result', landmarks: points } } as MessageEvent);
     engine.onmessage!({ data: { id: 2, type: 'result', landmarks: [] } } as MessageEvent);
     expect(await first).toEqual([]);
-    expect(await second).toEqual(points);
+    expect(await second).toEqual(bodyOnlyLandmarks(points));
     expect(engine.postMessage).toHaveBeenLastCalledWith(
       { id: 3, type: 'frame', bitmap, timestamp: 200 },
       [bitmap],

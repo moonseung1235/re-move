@@ -1,4 +1,5 @@
 import type { Exercise, Frame, Landmark, Side } from '../../types';
+import { FIRST_BODY_LANDMARK } from './bodyLandmarks';
 export const POSE_CONNECTIONS = [
   [11, 12],
   [11, 13],
@@ -53,7 +54,7 @@ export function drawPose(
   const { width, height, sourceWidth, sourceHeight, mirrored = false, fit = 'cover' } = geometry;
   ctx.clearRect(0, 0, width, height);
   if (!frame || !sourceWidth || !sourceHeight) return;
-  const visible = (p: Landmark | undefined): p is Landmark =>
+  const visible = (p: Landmark | null | undefined): p is Landmark =>
     !!p &&
     Number.isFinite(p.x) &&
     Number.isFinite(p.y) &&
@@ -82,7 +83,7 @@ export function drawPose(
     ctx.stroke();
   }
   frame.landmarks.forEach((point, index) => {
-    if (!visible(point)) return;
+    if (index < FIRST_BODY_LANDMARK || !visible(point)) return;
     const p = position(point);
     ctx.fillStyle = targets.includes(index) ? '#d3ff92' : '#fff';
     ctx.beginPath();

@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import type { AppData, Post } from '../types';
 import { emptyData } from './local';
+import { bodyOnlyData } from '../features/pose-analysis/bodyLandmarks';
 const url = import.meta.env.VITE_SUPABASE_URL;
 const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 export const supabase = url && key ? createClient(url, key) : null;
@@ -12,17 +13,18 @@ export async function loadCloud(): Promise<AppData> {
   const result = await supabase.rpc('load_private_data_v2');
   check(result.error);
   const initial = emptyData();
-  return {
+  return bodyOnlyData({
     ...initial,
     ...result.data,
     symptoms: result.data?.symptoms ?? null,
     preferences: { ...initial.preferences, ...result.data?.preferences },
     plans: result.data?.plans?.length ? result.data.plans : initial.plans,
     posts: await loadPosts(),
-  };
+  });
 }
 export async function saveCloud(data: AppData) {
   if (!supabase) return;
+  data = bodyOnlyData(data);
   const result = await supabase.rpc('sync_private_data_v2', {
     goals_data: data.goals,
     plans_data: data.plans,

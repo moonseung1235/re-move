@@ -1,8 +1,9 @@
-import type { Landmark } from '../../types';
+import type { PoseLandmarks } from '../../types';
+import { bodyOnlyLandmarks } from './bodyLandmarks';
 
 type Reply =
   | { id: number; type: 'ready' }
-  | { id: number; type: 'result'; landmarks: Landmark[] }
+  | { id: number; type: 'result'; landmarks: PoseLandmarks }
   | { id: number; type: 'error'; message: string };
 export class PoseClient {
   private worker: Worker;
@@ -61,7 +62,7 @@ export class PoseClient {
   init(): Promise<void> {
     return (this.initialized ??= this.request({ type: 'init' }).then(() => {}));
   }
-  async detect(bitmap: ImageBitmap, timestamp: number): Promise<Landmark[]> {
+  async detect(bitmap: ImageBitmap, timestamp: number): Promise<PoseLandmarks> {
     if (this.closed) {
       bitmap.close();
       throw new DOMException('분석이 종료되었어요.', 'AbortError');
@@ -69,7 +70,7 @@ export class PoseClient {
     try {
       const response = await this.request({ type: 'frame', bitmap, timestamp }, [bitmap]);
       if (response.type !== 'result') throw new Error('관절 분석 응답을 읽지 못했어요.');
-      return response.landmarks;
+      return bodyOnlyLandmarks(response.landmarks);
     } catch (error) {
       try {
         bitmap.close();

@@ -3,6 +3,69 @@ import { describe, expect, it } from 'vitest';
 import { emptyData, readData, writeData, saveMedia, readMedia, deleteMedia } from './local';
 import { openDB } from 'idb';
 describe('browser account separation and original video retention', () => {
+  it('removes face coordinates from saved and legacy records while preserving measurements and videos', async () => {
+    const database = await openDB('remove-private-v1', 1),
+      data = emptyData();
+    const points = Array.from({ length: 33 }, (_, index) => ({
+      x: 0.5,
+      y: 0.5,
+      z: index,
+      visibility: 1,
+    }));
+    const frames = [{ time: 0, angle: 90, landmarks: points }];
+    data.sessions = [
+      {
+        id: 'body-only-record',
+        exerciseId: 'knee',
+        recordedAt: '2026-10-24',
+        duration: 1,
+        side: 'left',
+        cameraDirection: '측면',
+        version: '2d-projected-v1',
+        mediaId: 'original',
+        analysis: {
+          min: 90,
+          max: 90,
+          range: 0,
+          validRatio: 1,
+          validFrames: 1,
+          totalFrames: 1,
+          repetitions: 0,
+          frames,
+        },
+      },
+    ];
+    data.captures = [
+      {
+        id: 'body-only-record',
+        exerciseId: 'knee',
+        recordedAt: '2026-10-24',
+        duration: 1,
+        side: 'left',
+        cameraDirection: '측면',
+        status: 'ready',
+        mediaId: 'original',
+        frames,
+      },
+    ];
+    await database.put('data', data, 'legacy-face-records');
+    const restored = await readData('legacy-face-records');
+    for (const recordFrames of [
+      restored.sessions[0].analysis.frames,
+      restored.captures[0].frames!,
+    ]) {
+      expect(recordFrames[0].landmarks.slice(0, 11)).toEqual(Array(11).fill(null));
+      expect(recordFrames[0].landmarks[25]).toEqual(points[25]);
+    }
+    expect(restored.sessions[0].mediaId).toBe('original');
+    expect(restored.sessions[0].analysis.min).toBe(90);
+    const migrated = await database.get('data', 'legacy-face-records');
+    expect(migrated.sessions[0].analysis.frames[0].landmarks[0]).toBeNull();
+    await writeData('new-face-records', data);
+    const written = await database.get('data', 'new-face-records');
+    expect(written.captures[0].frames[0].landmarks[10]).toBeNull();
+    expect(data.sessions[0].analysis.frames[0].landmarks[0]).toEqual(points[0]);
+  });
   it('preserves existing records while adding symptom and preference defaults', async () => {
     const database = await openDB('remove-private-v1', 1);
     const legacy = JSON.parse(JSON.stringify(emptyData()));

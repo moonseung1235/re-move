@@ -42,6 +42,8 @@ Safari에서 [Re:Move 설치 안내](https://re-move-ipad-20261024.newdegu1.chat
 
 공식 MediaPipe Pose Landmarker의 VIDEO 모드와 detectForVideo를 Worker에서 호출합니다. 모델·WASM은 public/models와 public/mediapipe에서 로드합니다. 분석용 영상을 외부 AI로 전송하지 않습니다.
 
+얼굴 관련 점(코·눈·귀·입, 인덱스 0–10)은 추론 직후 Worker 안에서 제거합니다. 얼굴 좌표를 UI·저장 데이터로 전달하지 않으며 어깨 이하 신체 관절만 표시합니다. 관절 번호가 밀리지 않도록 얼굴 슬롯은 좌표 없이 null로 남깁니다. 기존 로컬 기록은 읽을 때 얼굴 좌표를 제거해 다시 저장하고, 클라우드 기록은 읽기·저장 시 같은 필터를 적용합니다. 공식 Pose 모델 내부에서는 33개 위치를 함께 추론하며 얼굴 점만 추론하지 않도록 끄는 옵션은 없습니다. 별도 Face Landmarker·Face Mesh·표정 분석은 사용하지 않습니다. 원본 영상의 얼굴을 가리는 기능과는 별개입니다.
+
 - camera/useLivePose.ts: 열린 미리보기를 최대 약 12.5fps로 추적. 종횡비·cover 크롭·전면 미러링을 반영하며 0.5초 지난 관절은 지웁니다.
 - 촬영 시각 기준으로 실제 프레임을 수집하고 종료 후 10fps 시계열로 정리합니다. 누락 구간은 null로 남깁니다. 충분한 측정이 있으면 재추론 없이 저장합니다.
 - analyze.ts: 실시간 측정 부족·가져온 영상은 디코딩·길이 확인 후 0.1초 간격으로 추론합니다. WebM duration이 Infinity여도 실제 녹화 시간을 사용합니다. 탐색·Worker에 타임아웃·취소 처리가 있습니다.
