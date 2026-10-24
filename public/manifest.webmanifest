@@ -1,0 +1,12 @@
+{
+  "id": "/",
+  "name": "Re:Move",
+  "short_name": "Re:Move",
+  "lang": "ko",
+  "start_url": "/#/home",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#edf5f3",
+  "theme_color": "#087f75",
+  "icons": [{ "src": "/app-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }, { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }]
+}
