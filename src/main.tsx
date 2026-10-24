@@ -7,6 +7,8 @@ import './styles/reference-theme.css';
 import './styles/timeline.css';
 import './styles/capture-app.css';
 import './styles/tablet.css';
+import { registerAppWorker } from './pwa/register';
+registerAppWorker();
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />

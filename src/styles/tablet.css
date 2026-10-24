@@ -1,4 +1,61 @@
 /* Safari safe areas and touch targets also apply in Add to Home Screen mode. */
+.header-install {
+  color: #278e7c;
+}
+.install-app-intro {
+  text-align: center;
+  padding: 12px 0 22px;
+}
+.install-app-intro img {
+  border-radius: 18px;
+  margin: 0 auto 14px;
+}
+.install-app-intro h3 {
+  font-size: 19px;
+  color: #245968;
+  margin: 0 0 9px;
+}
+.install-app-intro p,
+.install-app-note {
+  font-size: 12px;
+  line-height: 1.8;
+  color: #78969c;
+}
+.install-app-steps {
+  padding: 0;
+  margin: 8px 0 20px;
+  list-style: none;
+  display: grid;
+  gap: 20px;
+}
+.install-app-steps li {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.install-app-steps li > span,
+.install-app-steps li > svg {
+  width: 23px;
+  flex: 0 0 23px;
+  color: #169b83;
+  text-align: center;
+  font-weight: 700;
+}
+.install-app-steps strong {
+  display: block;
+  font-size: 14px;
+  color: #345f6c;
+}
+.install-app-steps small {
+  display: block;
+  font-size: 11px;
+  color: #78969c;
+  line-height: 1.7;
+  margin-top: 5px;
+}
+.install-app-note {
+  margin: 0 0 18px;
+}
 .mobile-product .topbar {
   height: calc(74px + env(safe-area-inset-top));
   padding-top: env(safe-area-inset-top);

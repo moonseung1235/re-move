@@ -16,6 +16,7 @@ import type { AppData, Plan, Preferences } from '../../types';
 import { bodyAreas } from '../../features/exercise-tracking/personalize';
 import { getExercise } from '../../features/exercise-tracking/exercises';
 import { formatDate } from '../../utils/date';
+import InstallApp from '../../pwa/InstallApp';
 
 export default function MorePage({
   data,
@@ -204,6 +205,7 @@ export default function MorePage({
         </section>
       </details>
       <section className="card more-links">
+        <InstallApp row />
         <button className="more-row" onClick={onOwnPosts}>
           <span>내가 작성한 게시글</span>
           <ChevronRight size={17} />

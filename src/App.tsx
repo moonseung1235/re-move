@@ -1,4 +1,5 @@
 import BrandMark from './components/BrandMark';
+import InstallApp from './pwa/InstallApp';
 import CameraExercisePicker from './components/CameraExercisePicker';
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -84,6 +85,9 @@ function Brand() {
 }
 
 export default function App() {
+  const [installOpen, setInstallOpen] = useState(() =>
+    new URLSearchParams(window.location.search).has('install'),
+  );
   const [tab, setTab] = useState<Tab>(() => readRoute().tab),
     [exerciseId, setExerciseId] = useState<string | undefined>(() => readRoute().exerciseId),
     [focusedPost, setFocusedPost] = useState<string | undefined>(() => readRoute().postId);
@@ -374,6 +378,16 @@ export default function App() {
             <Brand />
           </button>
           <div className="topbar-right">
+            <InstallApp
+              open={installOpen}
+              onOpen={() => setInstallOpen(true)}
+              onClose={() => {
+                setInstallOpen(false);
+                const url = new URL(window.location.href);
+                url.searchParams.delete('install');
+                window.history.replaceState(null, '', url);
+              }}
+            />
             <span className="local-badge">
               <span />
               {userId === 'local-demo' ? '로컬 데모' : '내 계정'}
