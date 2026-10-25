@@ -52,10 +52,10 @@ textarea:focus-visible {
 }
 .ascend-app {
   width: 100%;
-  max-width: 440px;
+  max-width: 430px;
   min-height: 100dvh;
   margin: 0 auto;
-  padding: 0 0 calc(98px + env(safe-area-inset-bottom));
+  padding: 0 0 calc(88px + env(safe-area-inset-bottom));
   background: linear-gradient(180deg, #fcf0c5 0%, #f8f3df 45%, #dfe9bd 100%);
   box-shadow: 0 0 90px #52632b12;
   color: #20272a;
@@ -75,8 +75,8 @@ textarea:focus-visible {
 }
 .ascend-app .topbar {
   position: relative;
-  height: 108px;
-  padding: calc(42px + env(safe-area-inset-top)) 24px 16px;
+  height: calc(96px + env(safe-area-inset-top));
+  padding: calc(30px + env(safe-area-inset-top)) 24px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -124,8 +124,8 @@ textarea:focus-visible {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 5px;
-  width: min(100%, 440px);
-  min-height: 89px;
+  width: min(100%, 430px);
+  min-height: 84px;
   padding: 9px 10px max(10px, env(safe-area-inset-bottom));
   border-top: 1px solid #cbd9a6;
   background: #dfe9bcf5;
@@ -134,7 +134,7 @@ textarea:focus-visible {
 }
 .ascend-app .bottom-nav > button {
   min-width: 0;
-  min-height: 62px;
+  min-height: 58px;
   padding: 8px 4px;
   display: flex;
   flex-direction: column;
@@ -267,7 +267,9 @@ textarea:focus-visible {
   position: relative;
   overflow: hidden;
   width: 100%;
-  height: clamp(300px, 52dvh, 530px);
+  height: auto;
+  aspect-ratio: 5 / 6;
+  max-height: max(220px, calc(100svh - 350px));
   border-radius: 27px;
   background: #f0ebd5;
 }
@@ -414,8 +416,8 @@ textarea:focus-visible {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 42px 6px 21px;
-  min-height: 106px;
+  padding: calc(28px + env(safe-area-inset-top)) 6px 18px;
+  min-height: calc(92px + env(safe-area-inset-top));
 }
 .ascend-page-heading h1 {
   font-size: 27px;
@@ -800,7 +802,7 @@ textarea:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 0;
-  min-height: calc(100dvh - 213px);
+  min-height: calc(100dvh - 190px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
 }
 .goal-settings .diagnosis-card {
   padding: 18px;
@@ -1192,7 +1194,7 @@ textarea:focus-visible {
   border-radius: 26px;
   color: #26382b;
   box-shadow: 0 20px 70px #1635293a;
-  width: min(420px, calc(100vw - 24px));
+  width: min(406px, calc(100vw - 24px));
   max-height: 90dvh;
   padding: 23px;
 }
@@ -1329,76 +1331,6 @@ textarea:focus-visible {
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   border: 0;
-}
-@media (min-width: 600px) {
-  .ascend-app {
-    max-width: 760px;
-  }
-  .ascend-app .bottom-nav {
-    width: min(100%, 760px);
-  }
-  .ascend-app > main {
-    padding: 0 24px;
-  }
-  .ascend-subpage {
-    padding: 0 24px 15px;
-  }
-  .ascend-app .topbar {
-    padding-left: 36px;
-    padding-right: 36px;
-    height: 120px;
-  }
-  .ascend-page-heading {
-    min-height: 120px;
-  }
-  .ascend-video-hero {
-    height: min(58dvh, 650px);
-  }
-  .ascend-metrics strong {
-    font-size: 32px;
-  }
-  .ascend-app .ascend-card {
-    padding: 24px;
-  }
-  .ascend-app .settings-menu {
-    padding: 0;
-  }
-  .ascend-app .ascend-record-row {
-    padding: 14px;
-  }
-  .ascend-app .modal {
-    width: min(600px, calc(100vw - 48px));
-  }
-  .ascend-plan-table td,
-  .ascend-plan-table th,
-  .feedback-table td,
-  .feedback-table th {
-    font-size: 16px;
-    padding: 16px 6px;
-  }
-  .weekday-options button {
-    width: 53px;
-    height: 53px;
-  }
-  .ascend-app .primary {
-    min-height: 57px;
-    font-size: 18px;
-  }
-  .ascend-app .post-content {
-    font-size: 16px;
-  }
-  .ascend-app .post-media {
-    max-height: 510px;
-  }
-  .ascend-profile-card .progress-label {
-    margin-top: 20px;
-  }
-  .feedback-trend {
-    min-height: 160px;
-  }
-  .ascend-app .ascend-community .post-card {
-    padding: 25px;
-  }
 }
 @media (max-width: 360px) {
   .ascend-app .ascend-card {

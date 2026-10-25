@@ -63,7 +63,7 @@ export default function InstallApp({
           {installed ? <Check size={20} /> : <Download size={20} />}
           {row && (
             <span>
-              {standalone ? '앱으로 실행 중' : installed ? '앱 설치 완료' : '아이패드에 앱 설치'}
+              {standalone ? '앱으로 실행 중' : installed ? '앱 설치 완료' : '홈 화면에 앱 설치'}
             </span>
           )}
         </button>
