@@ -7,9 +7,12 @@ import { measureFrame, summarize } from '../features/pose-analysis/math';
 import { defaultPlans, exercises } from '../features/exercise-tracking/exercises';
 import { readMedia } from '../services/local';
 import MobileHome from '../pages/Ascend/Home';
+import LatestRecording from '../pages/Ascend/LatestRecording';
+import Records from '../pages/Ascend/Records';
 import LatestAnalysisCard from './LatestAnalysisCard';
 
 vi.mock('../services/local', () => ({ readMedia: vi.fn() }));
+vi.mock('./PoseAvatar3D', () => ({ PoseAvatar3D: () => null }));
 const points: Landmark[] = Array.from({ length: 33 }, () => ({
   x: 0.5,
   y: 0.5,
@@ -47,6 +50,7 @@ const ctx = {
   fillText: vi.fn(),
 };
 beforeEach(() => {
+  vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {});
   const NativeURL = URL;
   vi.stubGlobal(
     'URL',
@@ -74,7 +78,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-it('loads the latest actual stored video on home and draws its measured joint angle', async () => {
+it('loads the latest stored video in the record viewer and draws its measured joint angle', async () => {
   const user = userEvent.setup();
   vi.mocked(readMedia).mockResolvedValue(new Blob(['test-only'], { type: 'video/webm' }));
   const data: AppData = {
@@ -104,12 +108,10 @@ it('loads the latest actual stored video on home and draws its measured joint an
     latest,
   ];
   render(
-    <MobileHome
-      data={data}
+    <LatestRecording
+      sessions={data.sessions}
+      captures={data.captures}
       userId="account-test"
-      onSelect={vi.fn()}
-      onRecords={vi.fn()}
-      onGoal={vi.fn()}
       onDetail={vi.fn()}
       onCapture={vi.fn()}
     />,
@@ -132,6 +134,43 @@ it('loads the latest actual stored video on home and draws its measured joint an
   expect(screen.getByLabelText('스쿼트 분석 영상')).toBe(video);
   await user.click(screen.getByLabelText('분석 표시'));
   expect(ctx.fillText).toHaveBeenCalledWith('90.0°', expect.any(Number), expect.any(Number));
+});
+it('keeps analysis actions on home and places videos and 3D comparison in the records tab', async () => {
+  const user = userEvent.setup();
+  vi.mocked(readMedia).mockResolvedValue(new Blob(['test-only'], { type: 'video/webm' }));
+  const data: AppData = {
+    captures: [],
+    symptoms: null,
+    preferences: { saveOriginal: true },
+    goals: [],
+    plans: structuredClone(defaultPlans),
+    sessions: [latest],
+    posts: [],
+    nickname: '테스트',
+  };
+  const select = vi.fn();
+  const home = render(<MobileHome data={data} onSelect={select} onGoal={vi.fn()} />);
+  expect(screen.queryByLabelText('영상과 3D 동작 비교')).toBeNull();
+  expect(screen.queryByLabelText('스쿼트 분석 영상')).toBeNull();
+  expect(readMedia).not.toHaveBeenCalled();
+  await user.click(screen.getByRole('button', { name: '분석하기' }));
+  expect(select).toHaveBeenCalledWith(exercises[0]);
+  home.unmount();
+  render(
+    <Records
+      sessions={[latest]}
+      captures={[]}
+      userId="account-test"
+      onDetail={vi.fn()}
+      onCapture={vi.fn()}
+      onStart={vi.fn()}
+    />,
+  );
+  await screen.findByLabelText('스쿼트 분석 영상');
+  expect(screen.getByLabelText('영상과 3D 동작 비교')).toBeDefined();
+  expect(screen.getByRole('heading', { name: '3D 모델' })).toBeDefined();
+  await user.click(screen.getByRole('button', { name: '어깨' }));
+  expect(screen.queryByLabelText('영상과 3D 동작 비교')).toBeNull();
 });
 it('keeps measurements but never fabricates a video when its private original is absent', async () => {
   vi.mocked(readMedia).mockResolvedValue(undefined);

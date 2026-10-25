@@ -492,16 +492,12 @@ export default function App() {
                     {tab === 'home' && (
                       <MobileHome
                         data={data}
-                        userId={userId}
                         onGoal={() =>
                           setGoalEditor(
                             data.goals.find((goal) => goal.primary) ?? data.goals[0] ?? 'new',
                           )
                         }
-                        onDetail={setDetail}
-                        onCapture={openCapture}
                         onSelect={setSelected}
-                        onRecords={() => navigate('records')}
                       />
                     )}
                     {tab === 'records' && (

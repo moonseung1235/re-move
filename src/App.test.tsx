@@ -36,7 +36,7 @@ describe('four-tab mobile journey', () => {
     await user.type(description, '계단을 내려갈 때 오른쪽 무릎이 불편해요.');
     await user.selectOptions(screen.getByLabelText('불편한 쪽'), 'right');
     await user.click(screen.getByRole('button', { name: '나를 위한 운동 보기' }));
-    await screen.findByRole('heading', { name: '최근 촬영' });
+    await screen.findByRole('heading', { name: '운동 분석' });
     expect(screen.getByRole('button', { name: 'ASCEND 홈' })).toBeDefined();
     const nav = screen.getByRole('navigation', { name: '주 메뉴' });
     expect(
@@ -44,6 +44,10 @@ describe('four-tab mobile journey', () => {
         .getAllByRole('button')
         .map((button) => button.textContent),
     ).toEqual(['홈', '내 기록', '커뮤니티', '더보기']);
+    expect(screen.queryByLabelText('영상과 3D 동작 비교')).toBeNull();
+    await user.click(screen.getByRole('button', { name: '분석하기' }));
+    await screen.findByRole('heading', { name: '어떤 운동을 촬영할까요?' });
+    await user.click(screen.getByRole('button', { name: '닫기' }));
     expect((await readData('local-demo')).symptoms?.side).toBe('right');
     await user.click(screen.getByRole('button', { name: '나에게 맞는 활동 목표 설정' }));
     await screen.findByRole('heading', { name: '목표 설정' });
@@ -88,11 +92,11 @@ describe('four-tab mobile journey', () => {
       '어깨가 불편해서 팔을 들어 올리기 어려워요.',
     );
     await user.click(screen.getByRole('button', { name: '저장하고 운동 다시 보기' }));
-    await screen.findByRole('heading', { name: '최근 촬영' });
+    await screen.findByRole('heading', { name: '운동 분석' });
     expect(screen.queryByRole('heading', { name: '스쿼트' })).toBeNull();
     first.unmount();
     render(<App />);
-    await screen.findByRole('heading', { name: '최근 촬영' });
+    await screen.findByRole('heading', { name: '운동 분석' });
     expect((await readData('local-demo')).symptoms?.areas).toEqual(['shoulder']);
     await user.click(screen.getByRole('button', { name: '내 기록' }));
     await screen.findByRole('heading', { name: '첫 기록을 기다리고 있어요' });

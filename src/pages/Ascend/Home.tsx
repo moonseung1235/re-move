@@ -1,144 +1,33 @@
-import { useEffect, useRef, useState } from 'react';
 import { Camera, ChevronRight, ScanLine, Target } from 'lucide-react';
-import type { AppData, CaptureRecord, Exercise, Session } from '../../types';
-import { exercises, getExercise } from '../../features/exercise-tracking/exercises';
+import type { AppData, Exercise } from '../../types';
+import { exercises } from '../../features/exercise-tracking/exercises';
 import { matchedExercises } from '../../features/exercise-tracking/personalize';
-import { readMedia } from '../../services/local';
-import RecordingComparison from '../../components/RecordingComparison';
 
 export default function Home({
   data,
-  userId,
   onSelect,
-  onDetail,
-  onCapture,
-  onRecords,
   onGoal,
 }: {
   data: AppData;
-  userId: string;
   onSelect: (exercise: Exercise) => void;
-  onDetail: (session: Session) => void;
-  onCapture: (capture: CaptureRecord) => void;
-  onRecords: () => void;
   onGoal: () => void;
 }) {
-  const latest = [
-    ...data.sessions,
-    ...data.captures.filter((c) => !data.sessions.some((s) => s.id === c.id)),
-  ].sort((a, b) => b.recordedAt.localeCompare(a.recordedAt))[0];
-  const session = latest ? data.sessions.find((s) => s.id === latest.id) : undefined;
-  const capture = latest ? data.captures.find((c) => c.id === latest.id) : undefined;
-  const [url, setUrl] = useState(''),
-    [loading, setLoading] = useState(false),
-    [overlay, setOverlay] = useState(true);
-  const frames = session?.analysis.frames ?? capture?.frames ?? [];
-  const video = useRef<HTMLVideoElement>(null);
-  useEffect(() => {
-    let active = true,
-      objectUrl = '';
-    setUrl('');
-    setOverlay(true);
-    setLoading(!!latest?.mediaId);
-    if (latest?.mediaId)
-      readMedia(userId, latest.mediaId)
-        .then((blob) => {
-          if (blob && active) {
-            objectUrl = URL.createObjectURL(blob);
-            setUrl(objectUrl);
-          }
-        })
-        .catch(() => {})
-        .finally(() => {
-          if (active) setLoading(false);
-        });
-    return () => {
-      active = false;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-    };
-  }, [latest?.id, latest?.mediaId, userId]);
-  const start = () => onSelect(matchedExercises(data.symptoms!)[0] ?? exercises[0]);
-  const detail = () => {
-    video.current?.pause();
-    if (session) onDetail(session);
-    else if (capture) onCapture(capture);
-    else start();
-  };
-  const ex = latest ? getExercise(latest.exerciseId) : undefined;
+  const start = () =>
+    onSelect((data.symptoms ? matchedExercises(data.symptoms)[0] : undefined) ?? exercises[0]);
   return (
-    <div className="ascend-home">
+    <div className="ascend-home analysis-home">
       <div className="ascend-section-title latest-heading">
-        <h1>최근 촬영</h1>
-        <button className="text-button" onClick={onRecords}>
-          전체 보기
-        </button>
+        <h1>운동 분석</h1>
       </div>
-      <section className="ascend-latest" aria-label="가장 최근 운동 영상 분석">
-        {latest && ex ? (
-          <RecordingComparison
-            key={latest.id}
-            url={url}
-            loading={loading}
-            exercise={ex}
-            side={latest.side}
-            frames={frames}
-            duration={latest.duration}
-            overlay={overlay}
-            videoRef={video}
-            mirrored={latest.mirrored}
-          />
-        ) : (
-          <div className="ascend-video-hero empty">
-            <div className="ascend-video-empty">
-              <ScanLine size={45} />
-              <h2>나의 첫 움직임을 기록해요</h2>
-              <p>운동을 고르고 촬영하면 관절과 각도를 볼 수 있어요.</p>
-              <button className="primary" onClick={start}>
-                <Camera size={19} /> 촬영 시작
-              </button>
-            </div>
-          </div>
-        )}
-        <div className="ascend-metrics ascend-card">
-          <div>
-            <span>최소 각도</span>
-            <strong>{session ? `${session.analysis.min.toFixed(0)}°` : '—'}</strong>
-          </div>
-          <div>
-            <span>최대 각도</span>
-            <strong>{session ? `${session.analysis.max.toFixed(0)}°` : '—'}</strong>
-          </div>
-          <div>
-            <span>반복</span>
-            <strong>
-              {session?.analysis.repetitions !== null && session?.analysis.repetitions !== undefined
-                ? `${session.analysis.repetitions}회`
-                : '—'}
-            </strong>
-          </div>
+      <section className="analysis-start-card">
+        <div className="analysis-start-symbol">
+          <ScanLine size={52} strokeWidth={1.4} />
         </div>
-        <button className="primary full-width home-analysis-button" onClick={detail}>
-          {session ? '분석 결과 보기' : capture ? '분석 · 공유하기' : '운동 촬영하기'}
-          <ChevronRight size={21} />
+        <h2>나의 움직임을 기록해요</h2>
+        <p>운동을 선택하고 촬영을 시작해 보세요.</p>
+        <button className="primary full-width" onClick={start}>
+          <Camera size={20} /> 분석하기 <ChevronRight size={20} />
         </button>
-        {url && (
-          <button
-            className="ascend-overlay-switch"
-            role="switch"
-            aria-label="분석 표시"
-            aria-checked={overlay}
-            onClick={() => setOverlay((v) => !v)}
-          >
-            관절 표시 {overlay ? 'ON' : 'OFF'}
-          </button>
-        )}
-        {capture && !session && (
-          <p className="ascend-disclaimer">
-            {capture.status === 'failed'
-              ? '분석을 다시 확인할 수 있어요. 원본 영상은 보관되어 있어요.'
-              : '분석 대기 중 · 영상을 열어 분석을 이어갈 수 있어요.'}
-          </p>
-        )}
       </section>
       {!data.preferences.rehabilitation && (
         <button className="ascend-goal-prompt" onClick={onGoal}>

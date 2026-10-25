@@ -6,6 +6,7 @@ import { previousSession } from '../../features/record-comparison/compare';
 import SessionThumbnail from '../../components/SessionThumbnail';
 import { duration } from '../../utils/date';
 import { dateKey, dateLabel, recentComparable, ScreenHeading, Sparkline } from './shared';
+import LatestRecording from './LatestRecording';
 
 export default function Records({
   sessions,
@@ -26,20 +27,17 @@ export default function Records({
     [options, setOptions] = useState(false),
     [order, setOrder] = useState('new'),
     [side, setSide] = useState('all');
+  const matches = (item: Session | CaptureRecord) =>
+    (filter === 'all' || item.exerciseId === filter) && (side === 'all' || item.side === side);
   const all = [...sessions, ...captures.filter((c) => !sessions.some((s) => s.id === c.id))]
-    .filter(
-      (item) =>
-        (filter === 'all' || item.exerciseId === filter) && (side === 'all' || item.side === side),
-    )
+    .filter(matches)
     .sort((a, b) =>
       order === 'new'
         ? b.recordedAt.localeCompare(a.recordedAt)
         : a.recordedAt.localeCompare(b.recordedAt),
     );
   const measured = [...sessions]
-    .filter(
-      (s) => (filter === 'all' || s.exerciseId === filter) && (side === 'all' || s.side === side),
-    )
+    .filter(matches)
     .sort((a, b) => b.recordedAt.localeCompare(a.recordedAt));
   const current = measured[0],
     previous = current ? previousSession(current, sessions) : undefined;
@@ -88,6 +86,13 @@ export default function Records({
           </label>
         </section>
       )}
+      <LatestRecording
+        userId={userId}
+        sessions={measured}
+        captures={captures.filter(matches)}
+        onDetail={onDetail}
+        onCapture={onCapture}
+      />
       <section className="ascend-card records-trend-card">
         <div>
           <p>
