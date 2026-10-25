@@ -44,9 +44,12 @@ describe('body landmarks without face data', () => {
       time: index / 10,
       angle: 90,
       landmarks: pose(),
+      worldLandmarks: pose(),
     }));
     const summary = summarize(frames, exercises[0]);
     const capture = resampleCaptureFrames(frames, 1);
+    expect(summary.frames[0].worldLandmarks?.[25]).toEqual(frames[0].worldLandmarks[25]);
+    expect(capture[0].worldLandmarks?.slice(0, 11)).toEqual(Array(11).fill(null));
     for (const frame of [...summary.frames, ...capture]) {
       expect(frame.landmarks.slice(0, 11)).toEqual(Array(11).fill(null));
       expect(frame.landmarks[25]).toEqual(frames[0].landmarks[25]);

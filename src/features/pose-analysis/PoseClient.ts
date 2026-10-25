@@ -3,7 +3,7 @@ import { bodyOnlyLandmarks } from './bodyLandmarks';
 
 type Reply =
   | { id: number; type: 'ready' }
-  | { id: number; type: 'result'; landmarks: PoseLandmarks }
+  | { id: number; type: 'result'; landmarks: PoseLandmarks; worldLandmarks?: PoseLandmarks }
   | { id: number; type: 'error'; message: string };
 export class PoseClient {
   private worker: Worker;
@@ -63,6 +63,9 @@ export class PoseClient {
     return (this.initialized ??= this.request({ type: 'init' }).then(() => {}));
   }
   async detect(bitmap: ImageBitmap, timestamp: number): Promise<PoseLandmarks> {
+    return (await this.detectWithWorld(bitmap, timestamp)).landmarks;
+  }
+  async detectWithWorld(bitmap: ImageBitmap, timestamp: number) {
     if (this.closed) {
       bitmap.close();
       throw new DOMException('분석이 종료되었어요.', 'AbortError');
@@ -70,7 +73,10 @@ export class PoseClient {
     try {
       const response = await this.request({ type: 'frame', bitmap, timestamp }, [bitmap]);
       if (response.type !== 'result') throw new Error('관절 분석 응답을 읽지 못했어요.');
-      return bodyOnlyLandmarks(response.landmarks);
+      return {
+        landmarks: bodyOnlyLandmarks(response.landmarks),
+        worldLandmarks: bodyOnlyLandmarks(response.worldLandmarks ?? []),
+      };
     } catch (error) {
       try {
         bitmap.close();

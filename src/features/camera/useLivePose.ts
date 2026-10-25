@@ -16,6 +16,7 @@ export function useLivePose(
 ) {
   const [state, setState] = useState<'loading' | 'tracking' | 'searching' | 'error'>('loading'),
     [angle, setAngle] = useState<number | null>(null),
+    [currentFrame, setCurrentFrame] = useState<Frame>(),
     [error, setError] = useState(''),
     [revision, setRevision] = useState(0);
   const callback = useRef(onFrame);
@@ -32,6 +33,7 @@ export function useLivePose(
     setState('loading');
     setError('');
     setAngle(null);
+    setCurrentFrame(undefined);
     lastFrame.current = undefined;
     try {
       client = new PoseClient();
@@ -79,6 +81,7 @@ export function useLivePose(
           });
         if (!frame && ready) {
           setAngle(null);
+          setCurrentFrame(undefined);
           setState('searching');
         }
       }
@@ -107,21 +110,29 @@ export function useLivePose(
             bitmap.close();
             return;
           }
-          const landmarks = await client.detect(bitmap, now);
+          const detection = await client.detectWithWorld(bitmap, now);
           if (!active) return;
           const frame: Frame = {
             time: now / 1000,
-            landmarks,
-            angle: measureFrame(landmarks, exercise, side, video.videoWidth, video.videoHeight),
+            ...detection,
+            angle: measureFrame(
+              detection.landmarks,
+              exercise,
+              side,
+              video.videoWidth,
+              video.videoHeight,
+            ),
           };
           lastFrame.current = frame;
+          setCurrentFrame(frame);
           callback.current(frame, now);
           setAngle(frame.angle);
-          setState(landmarks.length ? 'tracking' : 'searching');
+          setState(detection.landmarks.length ? 'tracking' : 'searching');
         } catch (cause) {
           if (active) {
             ready = false;
             setAngle(null);
+            setCurrentFrame(undefined);
             setError(cause instanceof Error ? cause.message : '관절 분석이 중단됐어요.');
             setState('error');
           }
@@ -146,6 +157,7 @@ export function useLivePose(
   return {
     state,
     angle,
+    frame: currentFrame,
     error,
     retry: () => setRevision((value) => value + 1),
     flush: async () => {

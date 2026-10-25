@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { Camera, ChevronRight, ScanLine, Target } from 'lucide-react';
+import { Box, Camera, ChevronRight, ScanLine, Target } from 'lucide-react';
 import type { AppData, CaptureRecord, Exercise, Session } from '../../types';
 import { exercises, getExercise } from '../../features/exercise-tracking/exercises';
 import { matchedExercises } from '../../features/exercise-tracking/personalize';
 import { readMedia } from '../../services/local';
 import { VideoOverlay } from '../../components/VideoOverlay';
 import { duration } from '../../utils/date';
+import Modal from '../../components/Modal';
+import MotionViewer from '../../components/MotionViewer';
 
 export default function Home({
   data,
@@ -33,12 +35,16 @@ export default function Home({
   const [url, setUrl] = useState(''),
     [loading, setLoading] = useState(false),
     [overlay, setOverlay] = useState(true);
+  const [show3D, setShow3D] = useState(false);
+  const frames = session?.analysis.frames ?? capture?.frames ?? [];
+  const goal = data.preferences.rehabilitation;
   const video = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     let active = true,
       objectUrl = '';
     setUrl('');
     setOverlay(true);
+    setShow3D(false);
     setLoading(!!latest?.mediaId);
     if (latest?.mediaId)
       readMedia(userId, latest.mediaId)
@@ -82,6 +88,7 @@ export default function Home({
               side={latest.side}
               frames={overlay ? (session?.analysis.frames ?? capture?.frames ?? []) : []}
               videoRef={video}
+              mirrored={latest.mirrored}
             />
           ) : (
             <div className="ascend-video-empty">
@@ -148,6 +155,17 @@ export default function Home({
             관절 표시 {overlay ? 'ON' : 'OFF'}
           </button>
         )}
+        {latest && frames.some((frame) => frame.landmarks.some(Boolean)) && (
+          <button
+            className="secondary full-width home-3d-button"
+            onClick={() => {
+              video.current?.pause();
+              setShow3D(true);
+            }}
+          >
+            <Box size={18} /> 3D 동작 보기
+          </button>
+        )}
         {capture && !session && (
           <p className="ascend-disclaimer">
             {capture.status === 'failed'
@@ -156,6 +174,25 @@ export default function Home({
           </p>
         )}
       </section>
+      {show3D && latest && ex && (
+        <Modal title="3D 동작" onClose={() => setShow3D(false)}>
+          <MotionViewer
+            key={latest.id}
+            initialView="3d"
+            url={url}
+            exercise={ex}
+            side={latest.side}
+            frames={frames}
+            duration={latest.duration}
+            mirrored={latest.mirrored}
+            targetAngle={
+              goal?.targetExerciseId === latest.exerciseId && goal.side === latest.side
+                ? goal.targetAngle
+                : undefined
+            }
+          />
+        </Modal>
+      )}
       {!data.preferences.rehabilitation && (
         <button className="ascend-goal-prompt" onClick={onGoal}>
           <Target size={17} />

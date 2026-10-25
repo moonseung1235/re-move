@@ -63,8 +63,20 @@ export type Plan = {
 export type Landmark = { x: number; y: number; z: number; visibility: number; presence?: number };
 /** MediaPipe indices are preserved; excluded face slots 0–10 contain null. */
 export type PoseLandmarks = (Landmark | null)[];
-export type Frame = { time: number; angle: number | null; landmarks: PoseLandmarks };
+export type HandLandmarks = (Landmark | null)[];
+export type Frame = {
+  time: number;
+  angle: number | null;
+  landmarks: PoseLandmarks;
+  worldLandmarks?: PoseLandmarks;
+  leftHandLandmarks?: HandLandmarks;
+  leftHandWorldLandmarks?: HandLandmarks;
+  rightHandLandmarks?: HandLandmarks;
+  rightHandWorldLandmarks?: HandLandmarks;
+};
 export type Analysis = {
+  /** Capture display convention, also retained in cloud result_json. */
+  mirrored?: boolean;
   min: number;
   max: number;
   range: number;
@@ -81,6 +93,7 @@ export type Session = {
   duration: number;
   side: Side;
   cameraDirection: string;
+  mirrored?: boolean;
   version: string;
   analysis: Analysis;
   mediaId?: string;
@@ -92,6 +105,7 @@ export type CaptureRecord = {
   duration: number;
   side: Side;
   cameraDirection: string;
+  mirrored?: boolean;
   mediaId?: string;
   status: 'pending' | 'ready' | 'failed';
   error?: string;

@@ -15,7 +15,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock('../pose-analysis/PoseClient', () => ({
   PoseClient: class {
     init = mocks.init;
-    detect = mocks.detect;
+    detectWithWorld = mocks.detect;
     close = mocks.close;
   },
   snapshotVideo: mocks.snapshot,
@@ -52,9 +52,9 @@ it('tracks automatically on an open preview, timestamps capture before inference
   }));
   points[23].y = 0.2;
   points[27].x = 0.8;
-  let respond!: (points: Landmark[]) => void;
+  let respond!: (points: { landmarks: Landmark[]; worldLandmarks: Landmark[] }) => void;
   mocks.detect.mockReturnValue(
-    new Promise<Landmark[]>((resolve) => {
+    new Promise<{ landmarks: Landmark[]; worldLandmarks: Landmark[] }>((resolve) => {
       respond = resolve;
     }),
   );
@@ -83,12 +83,13 @@ it('tracks automatically on an open preview, timestamps capture before inference
   await act(async () => nextFrame(now));
   expect(mocks.detect).toHaveBeenCalledWith(expect.anything(), 100);
   now = 400;
-  await act(async () => respond(points));
+  await act(async () => respond({ landmarks: points, worldLandmarks: points }));
   expect(onFrame).toHaveBeenCalledWith(
-    expect.objectContaining({ time: 0.1, angle: 90, landmarks: points }),
+    expect.objectContaining({ time: 0.1, angle: 90, landmarks: points, worldLandmarks: points }),
     100,
   );
   expect(hook.result.current.angle).toBe(90);
+  expect(hook.result.current.frame?.worldLandmarks).toBe(points);
   Object.defineProperty(video, 'paused', { value: true });
   act(() => nextFrame(now));
   expect(mocks.draw).toHaveBeenLastCalledWith(
@@ -108,6 +109,7 @@ it('tracks automatically on an open preview, timestamps capture before inference
     expect.anything(),
   );
   expect(hook.result.current.angle).toBeNull();
+  expect(hook.result.current.frame).toBeUndefined();
   expect(hook.result.current.state).toBe('searching');
   hook.unmount();
   expect(mocks.close).toHaveBeenCalledOnce();

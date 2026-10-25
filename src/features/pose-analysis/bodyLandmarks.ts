@@ -20,9 +20,12 @@ export function bodyOnlyFrames(frames: Frame[]): Frame[] {
   let changed = false;
   const next = frames.map((frame) => {
     const landmarks = bodyOnlyLandmarks(frame.landmarks);
-    if (landmarks === frame.landmarks) return frame;
+    const worldLandmarks = frame.worldLandmarks
+      ? bodyOnlyLandmarks(frame.worldLandmarks)
+      : undefined;
+    if (landmarks === frame.landmarks && worldLandmarks === frame.worldLandmarks) return frame;
     changed = true;
-    return { ...frame, landmarks };
+    return { ...frame, landmarks, ...(worldLandmarks ? { worldLandmarks } : {}) };
   });
   return changed ? next : frames;
 }

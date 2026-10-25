@@ -4,7 +4,7 @@ import type { RehabGoal, Session } from '../../types';
 import { getExercise } from '../../features/exercise-tracking/exercises';
 import { previousSession } from '../../features/record-comparison/compare';
 import { readMedia } from '../../services/local';
-import { VideoOverlay } from '../../components/VideoOverlay';
+import MotionViewer from '../../components/MotionViewer';
 import {
   dateLabel,
   Progress,
@@ -182,16 +182,16 @@ export default function Feedback({
       </button>
       {details && (
         <section className="ascend-card detailed-record">
-          {url ? (
-            <VideoOverlay
-              url={url}
-              exercise={ex}
-              side={session.side}
-              frames={session.analysis.frames}
-            />
-          ) : (
-            <p>이 기기에 원본 영상이 없어요.</p>
-          )}
+          <MotionViewer
+            key={session.id}
+            url={url}
+            exercise={ex}
+            side={session.side}
+            frames={session.analysis.frames}
+            duration={session.duration}
+            mirrored={session.mirrored}
+            targetAngle={target}
+          />
           <p className="ascend-label">
             유효 프레임 {Math.round(session.analysis.validRatio * 100)}% · {session.version}
           </p>

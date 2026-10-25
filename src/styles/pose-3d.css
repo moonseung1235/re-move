@@ -1,0 +1,346 @@
+.motion-viewer {
+  width: 100%;
+  min-width: 0;
+  color: #263b2d;
+}
+.video-stage video.mirrored {
+  transform: scaleX(-1);
+}
+.motion-view-switch,
+.pose-view-switch {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  background: #e9ecd7;
+  border-radius: 22px;
+  margin-bottom: 14px;
+}
+.motion-view-switch button,
+.pose-view-switch button {
+  flex: 1;
+  min-height: 40px;
+  padding: 7px 12px;
+  border-radius: 20px;
+  color: #64745c;
+  font-size: 12px;
+  font-weight: 700;
+}
+.motion-view-switch button[aria-pressed='true'],
+.pose-view-switch button[aria-pressed='true'] {
+  background: #1e503e;
+  color: #fff;
+}
+.home-3d-button {
+  margin-top: 12px;
+}
+.motion-empty,
+.pose-review-loading {
+  display: grid;
+  place-items: center;
+  min-height: 180px;
+  padding: 24px;
+  border-radius: 20px;
+  color: #64745c;
+  background: #f0f1dc;
+  text-align: center;
+  font-size: 13px;
+}
+.pose-avatar {
+  position: relative;
+  width: 100%;
+  height: clamp(300px, 52dvh, 500px);
+  overflow: hidden;
+  border-radius: 20px;
+  background: #f0f1dc;
+  color: #244b36;
+}
+.pose-avatar-canvas {
+  position: absolute;
+  inset: 0;
+}
+.pose-avatar-canvas canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: none;
+}
+.pose-avatar-canvas canvas:active {
+  cursor: grabbing;
+}
+.pose-avatar-status {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  background: #f0f1dced;
+  font-size: 12px;
+  text-align: center;
+  z-index: 3;
+}
+.pose-avatar-status button {
+  background: #1e503e;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 20px;
+  min-height: 40px;
+}
+.pose-avatar-header {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  display: grid;
+  gap: 3px;
+  pointer-events: none;
+}
+.pose-avatar-header strong {
+  font-size: 12px;
+}
+.pose-avatar-header span {
+  font-size: 9px;
+  color: #6b7b5e;
+}
+.pose-avatar-views {
+  position: absolute;
+  display: flex;
+  left: 8px;
+  right: 8px;
+  bottom: 44px;
+  gap: 3px;
+}
+.pose-avatar-views button {
+  flex: 1;
+  min-height: 32px;
+  border-radius: 18px;
+  background: #ffffffd9;
+  font-size: 10px;
+  color: #36543d;
+}
+.pose-avatar-views button.selected {
+  background: #1e503e;
+  color: #fff;
+}
+.pose-avatar-feedback {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  padding: 7px;
+  border-radius: 12px;
+  background: #ffffffdc;
+  color: #36543d;
+  font-size: 10px;
+  text-align: center;
+}
+.pose-avatar-feedback b {
+  margin-right: 4px;
+}
+.camera-model-panel {
+  position: absolute;
+  z-index: 4;
+  right: max(12px, env(safe-area-inset-right, 0px));
+  top: calc(112px + env(safe-area-inset-top, 0px));
+  width: min(44vw, 220px);
+  height: min(32dvh, 290px);
+  min-height: 180px;
+  border: 1px solid #ffffff5c;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px #0003;
+}
+.camera-model-panel .pose-avatar,
+.camera-model-panel .pose-review-loading {
+  height: 100%;
+  min-height: 0;
+  border-radius: 0;
+}
+.camera-avatar-toggle[aria-pressed='true'] {
+  background: #dfe9bd;
+  color: #1e503e;
+}
+.pose-keyframe-review {
+  display: grid;
+  gap: 12px;
+}
+.pose-review-toolbar > div:first-child {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.pose-review-toolbar strong {
+  font-size: 16px;
+}
+.pose-review-toolbar span {
+  font-size: 11px;
+  color: #7b896c;
+}
+.pose-view-switch {
+  margin-bottom: 0;
+}
+.pose-view-switch button {
+  padding: 7px;
+}
+.pose-interaction-hint,
+.pose-review-help {
+  color: #7b896c;
+  font-size: 11px;
+  text-align: center;
+  line-height: 1.6;
+}
+.pose-compare-toggle {
+  justify-self: end;
+  color: #1e503e;
+  font-size: 12px;
+  padding: 8px 12px;
+  min-height: 40px;
+  border-radius: 20px;
+  background: #e9ecd7;
+}
+.pose-review-grid {
+  display: grid;
+  gap: 12px;
+}
+.pose-panel-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.pose-panel-label span {
+  font-variant-numeric: tabular-nums;
+  color: #64745c;
+}
+.animation-player {
+  padding: 12px;
+  background: #eef1e0;
+  border-radius: 20px;
+}
+.animation-scrubber {
+  width: 100%;
+  accent-color: #1e503e;
+  margin-bottom: 10px;
+}
+.animation-transport {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.animation-transport > button {
+  width: 36px;
+  height: 40px;
+  flex: 0 0 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff;
+  color: #1e503e;
+}
+.animation-transport > button svg {
+  width: 17px;
+  height: 17px;
+}
+.animation-transport > .animation-play {
+  background: #1e503e;
+  color: #fff;
+}
+.animation-time {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.animation-transport label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  font-size: 11px;
+}
+.animation-transport select {
+  width: auto;
+  min-height: 36px;
+  padding: 5px;
+  border-radius: 10px;
+  border: 0;
+  background: #fff;
+  color: #1e503e;
+}
+.capture-review-player {
+  overflow: auto;
+  align-items: stretch;
+}
+.capture-review-player > .motion-viewer {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.capture-review-player .motion-view-switch {
+  flex-shrink: 0;
+  margin: 0 12px 10px;
+}
+.capture-review-player .motion-viewer > .video-stage {
+  flex: 1;
+  min-height: 0;
+}
+.capture-review-player .pose-keyframe-review {
+  padding: 0 12px 16px;
+  background: #fcf5df;
+}
+.capture-review-player .pose-avatar {
+  height: max(230px, 34dvh);
+}
+@media (min-width: 620px) {
+  .pose-review-grid.is-comparing {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (orientation: landscape) and (min-width: 600px) {
+  .capture-with-avatar .capture-viewport {
+    right: 34vw;
+  }
+  .capture-with-avatar .camera-model-panel {
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 34vw;
+    height: 100%;
+    min-height: 0;
+    border: 0;
+    border-radius: 0;
+  }
+  .capture-with-avatar .camera-app-header {
+    right: 34vw;
+  }
+  .capture-with-avatar .camera-app-controls {
+    right: 34vw;
+  }
+  .capture-with-avatar .camera-live-badges {
+    right: calc(34vw + 12px);
+  }
+  .camera-model-panel .pose-avatar-header {
+    top: calc(12px + env(safe-area-inset-top, 0px));
+  }
+  .camera-model-panel .pose-avatar-feedback {
+    bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  }
+  .camera-model-panel .pose-avatar-views {
+    bottom: calc(44px + env(safe-area-inset-bottom, 0px));
+  }
+}
+@media (max-width: 370px) {
+  .animation-transport > button:first-child {
+    display: none;
+  }
+  .pose-avatar-views {
+    gap: 2px;
+    left: 5px;
+    right: 5px;
+  }
+  .pose-avatar-views button {
+    font-size: 9px;
+  }
+}

@@ -1,6 +1,6 @@
 import type { CaptureRecord, Exercise, Frame, Session, Side } from '../../types';
 import { ANALYSIS_VERSION, summarize } from '../pose-analysis/math';
-import { bodyOnlyLandmarks } from '../pose-analysis/bodyLandmarks';
+import { bodyOnlyFrames } from '../pose-analysis/bodyLandmarks';
 
 export function resampleCaptureFrames(samples: Frame[], duration: number): Frame[] {
   const frames: Frame[] = [],
@@ -16,11 +16,11 @@ export function resampleCaptureFrames(samples: Frame[], duration: number): Frame
     const sample = sorted[cursor];
     frames.push(
       sample && Math.abs(sample.time - time) <= 0.12
-        ? { ...sample, time, landmarks: bodyOnlyLandmarks(sample.landmarks) }
+        ? { ...sample, time }
         : { time, angle: null, landmarks: [] },
     );
   }
-  return frames;
+  return bodyOnlyFrames(frames);
 }
 export function sessionFromCapture(
   capture: CaptureRecord,
@@ -34,6 +34,7 @@ export function sessionFromCapture(
     duration: capture.duration,
     side: capture.side,
     cameraDirection: capture.cameraDirection,
+    mirrored: capture.mirrored,
     version: ANALYSIS_VERSION,
     analysis: summarize(frames, exercise),
     mediaId: capture.mediaId,

@@ -33,6 +33,7 @@ self.onmessage = async ({
           id: data.id,
           type: 'result',
           landmarks: bodyOnlyLandmarks(result.landmarks[0] ?? []),
+          worldLandmarks: bodyOnlyLandmarks(result.worldLandmarks[0] ?? []),
         });
       } finally {
         data.bitmap.close();

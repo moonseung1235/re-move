@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { LockKeyhole, Trash2, ArrowRight } from 'lucide-react';
+import { Trash2, ArrowRight } from 'lucide-react';
 import type { Session } from '../../types';
 import { readMedia } from '../../services/local';
 import { getExercise } from '../../features/exercise-tracking/exercises';
 import { RangeChart, TimelineChart } from '../../components/Charts';
-import { VideoOverlay } from '../../components/VideoOverlay';
+import MotionViewer from '../../components/MotionViewer';
 import Modal from '../../components/Modal';
 import { duration, formatDate } from '../../utils/date';
 import { previousSession } from '../../features/record-comparison/compare';
@@ -53,19 +53,15 @@ export default function SessionDetail({
         {formatDate(session.recordedAt)} · {session.side === 'left' ? '왼쪽' : '오른쪽'} ·{' '}
         {session.cameraDirection} · {duration(session.duration)}
       </p>
-      {url ? (
-        <VideoOverlay
-          url={url}
-          exercise={getExercise(session.exerciseId)}
-          side={session.side}
-          frames={session.analysis.frames}
-        />
-      ) : (
-        <div className="notice">
-          <LockKeyhole size={17} /> 원본 영상이 이 브라우저에 보관되어 있지 않습니다. 측정 결과는
-          아래에서 확인할 수 있어요.
-        </div>
-      )}
+      <MotionViewer
+        key={session.id}
+        url={url}
+        exercise={getExercise(session.exerciseId)}
+        side={session.side}
+        frames={session.analysis.frames}
+        duration={session.duration}
+        mirrored={session.mirrored}
+      />
       <div className="analysis-metrics">
         <div>
           <span>관측 각도 범위</span>

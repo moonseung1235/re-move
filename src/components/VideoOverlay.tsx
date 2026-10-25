@@ -8,6 +8,7 @@ export function VideoOverlay({
   frames = [],
   videoRef,
   analyzing = false,
+  mirrored = false,
 }: {
   url: string;
   exercise: Exercise;
@@ -15,6 +16,7 @@ export function VideoOverlay({
   frames?: Frame[];
   videoRef?: React.RefObject<HTMLVideoElement | null>;
   analyzing?: boolean;
+  mirrored?: boolean;
 }) {
   const localRef = useRef<HTMLVideoElement>(null),
     canvasRef = useRef<HTMLCanvasElement>(null);
@@ -42,6 +44,7 @@ export function VideoOverlay({
             sourceWidth: canvas.width,
             sourceHeight: canvas.height,
             fit: 'contain',
+            mirrored,
           },
         );
       }
@@ -49,12 +52,13 @@ export function VideoOverlay({
     };
     draw();
     return () => cancelAnimationFrame(raf);
-  }, [frames, exercise, side, ref]);
+  }, [frames, exercise, side, ref, mirrored]);
   return (
     <div className="video-stage">
       <video
         src={url}
         ref={ref}
+        className={mirrored ? 'mirrored' : ''}
         playsInline
         controls={!analyzing}
         preload="auto"

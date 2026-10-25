@@ -53,6 +53,25 @@ describe('worker responses and cancellation', () => {
     await expect(client.detect(bitmap, 1)).rejects.toHaveProperty('name', 'AbortError');
     expect(bitmap.close).toHaveBeenCalledOnce();
   });
+  it('returns 3D coordinates with the same body-only privacy filter', async () => {
+    const engine = worker(),
+      client = new PoseClient(engine);
+    const points = Array.from({ length: 33 }, (_, i) => ({
+      x: i / 33,
+      y: i / 66,
+      z: -i / 100,
+      visibility: 1,
+    }));
+    const pending = client.detectWithWorld({ close: vi.fn() } as unknown as ImageBitmap, 100);
+    engine.onmessage!({
+      data: { id: 1, type: 'result', landmarks: points, worldLandmarks: points },
+    } as MessageEvent);
+    const detection = await pending;
+    expect(detection.worldLandmarks.slice(0, 11)).toEqual(Array(11).fill(null));
+    expect(detection.worldLandmarks[25]).toEqual(points[25]);
+    expect(detection.landmarks).toEqual(bodyOnlyLandmarks(points));
+    client.close();
+  });
   it('surfaces model failures and times out missing replies', async () => {
     vi.useFakeTimers();
     const engine = worker(),

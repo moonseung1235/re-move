@@ -31,11 +31,17 @@ export async function analyzeVideo(
         bitmap.close();
         throw new DOMException('취소됨', 'AbortError');
       }
-      const landmarks = await client.detect(bitmap, i * 100 + 1);
+      const detection = await client.detectWithWorld(bitmap, i * 100 + 1);
       frames.push({
         time,
-        angle: measureFrame(landmarks, exercise, side, video.videoWidth, video.videoHeight),
-        landmarks,
+        angle: measureFrame(
+          detection.landmarks,
+          exercise,
+          side,
+          video.videoWidth,
+          video.videoHeight,
+        ),
+        ...detection,
       });
       onProgress(Math.round(((i + 1) / total) * 100));
     }

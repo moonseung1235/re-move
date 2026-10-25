@@ -102,6 +102,11 @@ async function setup() {
 
 it('retains the recorded clip, saves live joint measurements, and passes the same clip to SNS composition', async () => {
   const { user, onSave, onCaptureSaved, onShare } = await setup();
+  expect(screen.getByLabelText('실시간 3D 동작')).toBeDefined();
+  await user.click(screen.getByRole('button', { name: '실시간 3D 모델 표시' }));
+  expect(screen.queryByLabelText('실시간 3D 동작')).toBeNull();
+  await user.click(screen.getByRole('button', { name: '실시간 3D 모델 표시' }));
+  expect(screen.getByLabelText('실시간 3D 동작')).toBeDefined();
   await user.click(screen.getByRole('button', { name: '촬영 시작' }));
   const points: Landmark[] = Array.from({ length: 33 }, () => ({
     x: 0.5,
@@ -115,7 +120,10 @@ it('retains the recorded clip, saves live joint measurements, and passes the sam
   act(() => {
     for (let index = 0; index < 10; index++) {
       const clock = 100 + index * 100;
-      mocks.onFrame?.({ time: clock / 1000, angle, landmarks: points }, clock);
+      mocks.onFrame?.(
+        { time: clock / 1000, angle, landmarks: points, worldLandmarks: points },
+        clock,
+      );
     }
   });
   now = 1100;
@@ -129,6 +137,9 @@ it('retains the recorded clip, saves live joint measurements, and passes the sam
   const session = onSave.mock.calls[0][0];
   expect(session.analysis.min).toBeCloseTo(90);
   expect(session.analysis.validRatio).toBe(1);
+  expect(session.analysis.frames[0].worldLandmarks[25]).toEqual(points[25]);
+  expect(session.analysis.frames[0].worldLandmarks.slice(0, 11)).toEqual(Array(11).fill(null));
+  expect(session.mirrored).toBe(pending.mirrored);
   expect(session.mediaId).toBe(pending.mediaId);
   expect(mocks.analyzeBlob).not.toHaveBeenCalled();
   expect(track.stop).toHaveBeenCalled();

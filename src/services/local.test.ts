@@ -12,7 +12,7 @@ describe('browser account separation and original video retention', () => {
       z: index,
       visibility: 1,
     }));
-    const frames = [{ time: 0, angle: 90, landmarks: points }];
+    const frames = [{ time: 0, angle: 90, landmarks: points, worldLandmarks: points }];
     data.sessions = [
       {
         id: 'body-only-record',
@@ -56,6 +56,8 @@ describe('browser account separation and original video retention', () => {
     ]) {
       expect(recordFrames[0].landmarks.slice(0, 11)).toEqual(Array(11).fill(null));
       expect(recordFrames[0].landmarks[25]).toEqual(points[25]);
+      expect(recordFrames[0].worldLandmarks?.[25]).toEqual(points[25]);
+      expect(recordFrames[0].worldLandmarks?.slice(0, 11)).toEqual(Array(11).fill(null));
     }
     expect(restored.sessions[0].mediaId).toBe('original');
     expect(restored.sessions[0].analysis.min).toBe(90);

@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import type { AppData, Post } from '../types';
+import type { AppData, Post, Session } from '../types';
 import { emptyData } from './local';
 import { bodyOnlyData } from '../features/pose-analysis/bodyLandmarks';
 import { cloudPreferences } from './settings';
@@ -19,6 +19,10 @@ export async function loadCloud(): Promise<AppData> {
     ...result.data,
     symptoms: result.data?.symptoms ?? null,
     preferences: { ...initial.preferences, ...result.data?.preferences },
+    sessions: (result.data?.sessions ?? []).map((session: Session) => ({
+      ...session,
+      mirrored: session.mirrored ?? session.analysis.mirrored ?? false,
+    })),
     plans: result.data?.plans?.length ? result.data.plans : initial.plans,
     posts: await loadPosts(),
   });
@@ -29,7 +33,11 @@ export async function saveCloud(data: AppData) {
   const result = await supabase.rpc('sync_private_data_v2', {
     goals_data: data.goals,
     plans_data: data.plans,
-    sessions_data: data.sessions.map((s) => ({ ...s, mediaId: undefined })),
+    sessions_data: data.sessions.map((s) => ({
+      ...s,
+      mediaId: undefined,
+      analysis: { ...s.analysis, mirrored: s.mirrored ?? s.analysis.mirrored ?? false },
+    })),
     display_name: data.nickname,
     settings_data: {
       symptoms: data.symptoms,

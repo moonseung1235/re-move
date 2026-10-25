@@ -38,6 +38,7 @@ const session = {
   cameraDirection: '측면',
   version: '2d-projected-v1',
   analysis: {
+    mirrored: true,
     min: 40,
     max: 100,
     range: 60,
@@ -45,7 +46,14 @@ const session = {
     validFrames: 50,
     totalFrames: 50,
     repetitions: 2,
-    frames: [],
+    frames: [
+      {
+        time: 0,
+        angle: 90,
+        landmarks: [],
+        worldLandmarks: [null, { x: 0.1, y: -0.2, z: 0.3, visibility: 1 }],
+      },
+    ],
   },
 };
 
@@ -119,6 +127,8 @@ test('SQL migration and private sync/read round trip', async () => {
   assert.equal(rows[0].data.nickname, 'Account A');
   assert.equal(rows[0].data.goals[0].title, 'Private test goal');
   assert.equal(rows[0].data.sessions[0].analysis.range, 60);
+  assert.equal(rows[0].data.sessions[0].analysis.mirrored, true);
+  assert.deepEqual(rows[0].data.sessions[0].analysis.frames, session.analysis.frames);
   assert.equal(rows[0].data.plans[0].exerciseId, 'knee');
 });
 test('another account cannot read, mutate, or claim private records', async () => {
