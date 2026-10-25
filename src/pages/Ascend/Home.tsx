@@ -1,13 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { Box, Camera, ChevronRight, ScanLine, Target } from 'lucide-react';
+import { Camera, ChevronRight, ScanLine, Target } from 'lucide-react';
 import type { AppData, CaptureRecord, Exercise, Session } from '../../types';
 import { exercises, getExercise } from '../../features/exercise-tracking/exercises';
 import { matchedExercises } from '../../features/exercise-tracking/personalize';
 import { readMedia } from '../../services/local';
-import { VideoOverlay } from '../../components/VideoOverlay';
-import { duration } from '../../utils/date';
-import Modal from '../../components/Modal';
-import MotionViewer from '../../components/MotionViewer';
+import RecordingComparison from '../../components/RecordingComparison';
 
 export default function Home({
   data,
@@ -35,16 +32,13 @@ export default function Home({
   const [url, setUrl] = useState(''),
     [loading, setLoading] = useState(false),
     [overlay, setOverlay] = useState(true);
-  const [show3D, setShow3D] = useState(false);
   const frames = session?.analysis.frames ?? capture?.frames ?? [];
-  const goal = data.preferences.rehabilitation;
   const video = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     let active = true,
       objectUrl = '';
     setUrl('');
     setOverlay(true);
-    setShow3D(false);
     setLoading(!!latest?.mediaId);
     if (latest?.mediaId)
       readMedia(userId, latest.mediaId)
@@ -80,48 +74,31 @@ export default function Home({
         </button>
       </div>
       <section className="ascend-latest" aria-label="가장 최근 운동 영상 분석">
-        <div className={`ascend-video-hero ${url ? 'has-video' : 'empty'}`}>
-          {url && ex ? (
-            <VideoOverlay
-              url={url}
-              exercise={ex}
-              side={latest.side}
-              frames={overlay ? (session?.analysis.frames ?? capture?.frames ?? []) : []}
-              videoRef={video}
-              mirrored={latest.mirrored}
-            />
-          ) : (
+        {latest && ex ? (
+          <RecordingComparison
+            key={latest.id}
+            url={url}
+            loading={loading}
+            exercise={ex}
+            side={latest.side}
+            frames={frames}
+            duration={latest.duration}
+            overlay={overlay}
+            videoRef={video}
+            mirrored={latest.mirrored}
+          />
+        ) : (
+          <div className="ascend-video-hero empty">
             <div className="ascend-video-empty">
               <ScanLine size={45} />
-              <h2>
-                {loading
-                  ? '영상을 불러오고 있어요'
-                  : latest
-                    ? '이 기기에 원본 영상이 없어요'
-                    : '나의 첫 움직임을 기록해요'}
-              </h2>
-              <p>
-                {latest
-                  ? '분석 결과와 기록은 아래에서 확인할 수 있어요.'
-                  : '운동을 고르고 촬영하면 관절과 각도를 볼 수 있어요.'}
-              </p>
-              {!latest && (
-                <button className="primary" onClick={start}>
-                  <Camera size={19} /> 촬영 시작
-                </button>
-              )}
+              <h2>나의 첫 움직임을 기록해요</h2>
+              <p>운동을 고르고 촬영하면 관절과 각도를 볼 수 있어요.</p>
+              <button className="primary" onClick={start}>
+                <Camera size={19} /> 촬영 시작
+              </button>
             </div>
-          )}
-          {latest && ex && (
-            <>
-              <span className="ascend-video-chip">
-                <i />
-                {ex.name} · {latest.cameraDirection}
-              </span>
-              <span className="ascend-video-time">{duration(latest.duration)}</span>
-            </>
-          )}
-        </div>
+          </div>
+        )}
         <div className="ascend-metrics ascend-card">
           <div>
             <span>최소 각도</span>
@@ -155,17 +132,6 @@ export default function Home({
             관절 표시 {overlay ? 'ON' : 'OFF'}
           </button>
         )}
-        {latest && frames.some((frame) => frame.landmarks.some(Boolean)) && (
-          <button
-            className="secondary full-width home-3d-button"
-            onClick={() => {
-              video.current?.pause();
-              setShow3D(true);
-            }}
-          >
-            <Box size={18} /> 3D 동작 보기
-          </button>
-        )}
         {capture && !session && (
           <p className="ascend-disclaimer">
             {capture.status === 'failed'
@@ -174,25 +140,6 @@ export default function Home({
           </p>
         )}
       </section>
-      {show3D && latest && ex && (
-        <Modal title="3D 동작" onClose={() => setShow3D(false)}>
-          <MotionViewer
-            key={latest.id}
-            initialView="3d"
-            url={url}
-            exercise={ex}
-            side={latest.side}
-            frames={frames}
-            duration={latest.duration}
-            mirrored={latest.mirrored}
-            targetAngle={
-              goal?.targetExerciseId === latest.exerciseId && goal.side === latest.side
-                ? goal.targetAngle
-                : undefined
-            }
-          />
-        </Modal>
-      )}
       {!data.preferences.rehabilitation && (
         <button className="ascend-goal-prompt" onClick={onGoal}>
           <Target size={17} />

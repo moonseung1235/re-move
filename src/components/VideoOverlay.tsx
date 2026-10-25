@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { Exercise, Frame, Side } from '../types';
 import { drawPose } from '../features/pose-analysis/draw';
+import { frameAtTime } from '../features/pose-analysis/frameAtTime';
 export function VideoOverlay({
   url,
   exercise,
@@ -9,6 +10,7 @@ export function VideoOverlay({
   videoRef,
   analyzing = false,
   mirrored = false,
+  controls,
 }: {
   url: string;
   exercise: Exercise;
@@ -17,6 +19,7 @@ export function VideoOverlay({
   videoRef?: React.RefObject<HTMLVideoElement | null>;
   analyzing?: boolean;
   mirrored?: boolean;
+  controls?: boolean;
 }) {
   const localRef = useRef<HTMLVideoElement>(null),
     canvasRef = useRef<HTMLCanvasElement>(null);
@@ -31,22 +34,15 @@ export function VideoOverlay({
         if (!ctx) return;
         canvas.width = video.videoWidth || 640;
         canvas.height = video.videoHeight || 480;
-        const index = Math.round(video.currentTime * 10),
-          frame = frames[index];
-        drawPose(
-          ctx,
-          frame && Math.abs(frame.time - video.currentTime) < 0.18 ? frame : undefined,
-          exercise,
-          side,
-          {
-            width: canvas.width,
-            height: canvas.height,
-            sourceWidth: canvas.width,
-            sourceHeight: canvas.height,
-            fit: 'contain',
-            mirrored,
-          },
-        );
+        const frame = frameAtTime(frames, video.currentTime);
+        drawPose(ctx, frame, exercise, side, {
+          width: canvas.width,
+          height: canvas.height,
+          sourceWidth: canvas.width,
+          sourceHeight: canvas.height,
+          fit: 'contain',
+          mirrored,
+        });
       }
       raf = requestAnimationFrame(draw);
     };
@@ -60,7 +56,7 @@ export function VideoOverlay({
         ref={ref}
         className={mirrored ? 'mirrored' : ''}
         playsInline
-        controls={!analyzing}
+        controls={controls ?? !analyzing}
         preload="auto"
         aria-label={`${exercise.name} 분석 영상`}
       />

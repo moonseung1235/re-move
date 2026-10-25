@@ -1,7 +1,6 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Camera,
-  Box,
   Check,
   ChevronDown,
   Download,
@@ -30,10 +29,6 @@ import { analyzeBlob } from '../../features/pose-analysis/analyze';
 import { ANALYSIS_VERSION } from '../../features/pose-analysis/math';
 import { readMedia } from '../../services/local';
 import MotionViewer from '../../components/MotionViewer';
-
-const PoseAvatar3D = lazy(() =>
-  import('../../components/PoseAvatar3D').then(({ PoseAvatar3D }) => ({ default: PoseAvatar3D })),
-);
 
 export default function FullscreenCapture({
   exercise,
@@ -71,7 +66,6 @@ export default function FullscreenCapture({
     [recording, setRecording] = useState(false),
     [elapsed, setElapsed] = useState(0),
     [needsPlay, setNeedsPlay] = useState(false);
-  const [showAvatar, setShowAvatar] = useState(true);
   const [capture, setCapture] = useState<CaptureRecord | undefined>(initialCapture),
     [blob, setBlob] = useState<Blob>(),
     [url, setUrl] = useState(''),
@@ -434,10 +428,7 @@ export default function FullscreenCapture({
       .toString()
       .padStart(2, '0')}`;
   return (
-    <section
-      className={`capture-app ${showAvatar && camera.stream && mode === 'camera' ? 'capture-with-avatar' : ''}`}
-      aria-label="전체 화면 운동 카메라"
-    >
+    <section className="capture-app" aria-label="전체 화면 운동 카메라">
       {mode === 'camera' ? (
         <div className="capture-viewport">
           <video
@@ -490,6 +481,7 @@ export default function FullscreenCapture({
         <div className="capture-review-player">
           {capture && (
             <MotionViewer
+              initialView="3d"
               url={url}
               exercise={exercise}
               side={capture?.side ?? side}
@@ -519,32 +511,8 @@ export default function FullscreenCapture({
             {exercise.cameraDirection} 촬영 {mode === 'camera' && <ChevronDown size={12} />}
           </span>
         </button>
-        {mode === 'camera' ? (
-          <button
-            className="camera-avatar-toggle"
-            aria-label="실시간 3D 모델 표시"
-            aria-pressed={showAvatar}
-            onClick={() => setShowAvatar((value) => !value)}
-          >
-            <Box size={23} />
-          </button>
-        ) : (
-          <span className="camera-header-spacer" />
-        )}
+        <span className="camera-header-spacer" />
       </header>
-      {mode === 'camera' && camera.stream && showAvatar && (
-        <aside className="camera-model-panel" aria-label="실시간 3D 동작">
-          <Suspense fallback={<div className="pose-review-loading">3D 모델 준비 중…</div>}>
-            <PoseAvatar3D
-              frame={live.frame}
-              exercise={exercise}
-              side={side}
-              mirrored={camera.facing === 'user'}
-              compact
-            />
-          </Suspense>
-        </aside>
-      )}
       {mode === 'camera' && camera.stream && (
         <div className="camera-live-badges">
           <span className={recording ? 'recording-clock' : ''}>
