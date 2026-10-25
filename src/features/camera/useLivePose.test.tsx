@@ -89,6 +89,7 @@ it('tracks automatically on an open preview, timestamps capture before inference
     100,
   );
   expect(hook.result.current.angle).toBe(90);
+  expect(hook.result.current.frame?.worldLandmarks).toBe(points);
   Object.defineProperty(video, 'paused', { value: true });
   act(() => nextFrame(now));
   expect(mocks.draw).toHaveBeenLastCalledWith(
@@ -108,6 +109,7 @@ it('tracks automatically on an open preview, timestamps capture before inference
     expect.anything(),
   );
   expect(hook.result.current.angle).toBeNull();
+  expect(hook.result.current.frame).toBeUndefined();
   expect(hook.result.current.state).toBe('searching');
   hook.unmount();
   expect(mocks.close).toHaveBeenCalledOnce();

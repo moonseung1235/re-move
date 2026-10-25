@@ -102,8 +102,11 @@ async function setup() {
 
 it('retains the recorded clip, saves live joint measurements, and passes the same clip to SNS composition', async () => {
   const { user, onSave, onCaptureSaved, onShare } = await setup();
+  expect(screen.getByLabelText('실시간 3D 동작')).toBeDefined();
+  await user.click(screen.getByRole('button', { name: '실시간 3D 모델 표시' }));
   expect(screen.queryByLabelText('실시간 3D 동작')).toBeNull();
-  expect(screen.queryByRole('button', { name: '실시간 3D 모델 표시' })).toBeNull();
+  await user.click(screen.getByRole('button', { name: '실시간 3D 모델 표시' }));
+  expect(screen.getByLabelText('실시간 3D 동작')).toBeDefined();
   await user.click(screen.getByRole('button', { name: '촬영 시작' }));
   const points: Landmark[] = Array.from({ length: 33 }, () => ({
     x: 0.5,
