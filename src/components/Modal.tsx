@@ -38,12 +38,14 @@ export default function Modal({
           <X size={22} />
         </button>
       </div>
-      {error && (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      )}
-      {children}
+      <div className="modal-content">
+        {error && (
+          <p className="error" role="alert">
+            {error}
+          </p>
+        )}
+        {children}
+      </div>
     </dialog>
   );
 }

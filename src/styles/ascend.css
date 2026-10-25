@@ -1188,15 +1188,47 @@ textarea:focus-visible {
   color: #8a9678;
   margin: -3px 5px 12px !important;
 }
-.ascend-app .modal {
+.ascend-app .modal,
+.ascend-app .modal.wide {
   background: linear-gradient(155deg, #fff8df, #e7edcc);
   border: 0;
-  border-radius: 26px;
+  border-radius: 0;
   color: #26382b;
-  box-shadow: 0 20px 70px #1635293a;
-  width: min(406px, calc(100vw - 24px));
-  max-height: 90dvh;
-  padding: 23px;
+  box-shadow: none;
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100vh;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.ascend-app .modal[open] {
+  display: flex;
+  flex-direction: column;
+}
+.ascend-app .modal-heading {
+  flex: 0 0 auto;
+  gap: 12px;
+  margin: 0;
+  padding: calc(20px + env(safe-area-inset-top, 0px))
+    max(20px, env(safe-area-inset-right, 0px)) 16px
+    max(20px, env(safe-area-inset-left, 0px));
+}
+.ascend-app .modal-heading .icon-button {
+  flex-shrink: 0;
+}
+.ascend-app .modal-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  padding: 0 max(20px, env(safe-area-inset-right, 0px))
+    calc(24px + env(safe-area-inset-bottom, 0px))
+    max(20px, env(safe-area-inset-left, 0px));
 }
 .ascend-app .modal::backdrop {
   background: #1838296b;
