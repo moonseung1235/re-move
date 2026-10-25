@@ -114,6 +114,7 @@ it('loads the latest stored video in the record viewer and draws its measured jo
       userId="account-test"
       onDetail={vi.fn()}
       onCapture={vi.fn()}
+      onShare={vi.fn()}
     />,
   );
   const video = await screen.findByLabelText('스쿼트 분석 영상');
@@ -164,6 +165,7 @@ it('keeps analysis actions on home and places videos and 3D comparison in the re
       onDetail={vi.fn()}
       onCapture={vi.fn()}
       onStart={vi.fn()}
+      onShare={vi.fn()}
     />,
   );
   await screen.findByLabelText('스쿼트 분석 영상');

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Share2 } from 'lucide-react';
 import type { CaptureRecord, Session } from '../../types';
 import { getExercise } from '../../features/exercise-tracking/exercises';
 import { readMedia } from '../../services/local';
@@ -11,12 +11,16 @@ export default function LatestRecording({
   userId,
   onDetail,
   onCapture,
+  onShare,
+  busy = false,
 }: {
   sessions: Session[];
   captures: CaptureRecord[];
   userId: string;
   onDetail: (session: Session) => void;
   onCapture: (capture: CaptureRecord) => void;
+  onShare: (record: Session | CaptureRecord) => void;
+  busy?: boolean;
 }) {
   const latest = [
     ...sessions,
@@ -98,6 +102,16 @@ export default function LatestRecording({
         <button className="primary full-width home-analysis-button" onClick={detail}>
           {session ? '분석 결과 보기' : '분석 · 공유하기'}
           <ChevronRight size={21} />
+        </button>
+        <button
+          className="secondary full-width record-share-latest"
+          disabled={busy}
+          onClick={() => {
+            video.current?.pause();
+            onShare(latest);
+          }}
+        >
+          <Share2 size={18} /> 커뮤니티에 공유
         </button>
         {url && (
           <button

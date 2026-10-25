@@ -177,6 +177,13 @@ export default function Feedback({
         />
       </section>
       <p className="ascend-disclaimer">측정값은 2D 영상 기준 참고용이며 진단이 아니에요.</p>
+      <button
+        className="secondary full-width feedback-share-button"
+        disabled={busy}
+        onClick={onShare}
+      >
+        <Share2 size={17} /> 커뮤니티에 공유
+      </button>
       <button className="primary full-width" onClick={() => setDetails((value) => !value)}>
         기록에서 자세히 보기 <ChevronRight size={18} />
       </button>
@@ -196,9 +203,6 @@ export default function Feedback({
             유효 프레임 {Math.round(session.analysis.validRatio * 100)}% · {session.version}
           </p>
           <div className="button-row">
-            <button className="secondary" onClick={onShare}>
-              <Share2 size={17} /> 선택 공유
-            </button>
             {url && (
               <button className="text-button" onClick={onRemoveVideo} disabled={busy}>
                 원본 영상만 삭제

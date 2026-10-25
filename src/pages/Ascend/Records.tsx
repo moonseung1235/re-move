@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Camera, SlidersHorizontal } from 'lucide-react';
+import { Camera, Share2, SlidersHorizontal } from 'lucide-react';
 import type { CaptureRecord, Session } from '../../types';
 import { exercises, getExercise } from '../../features/exercise-tracking/exercises';
 import { previousSession } from '../../features/record-comparison/compare';
@@ -13,6 +13,8 @@ export default function Records({
   captures,
   onDetail,
   onCapture,
+  onShare,
+  busy = false,
   onStart,
   userId,
 }: {
@@ -20,6 +22,8 @@ export default function Records({
   captures: CaptureRecord[];
   onDetail: (session: Session) => void;
   onCapture: (capture: CaptureRecord) => void;
+  onShare: (record: Session | CaptureRecord) => void;
+  busy?: boolean;
   onStart: () => void;
   userId: string;
 }) {
@@ -92,6 +96,8 @@ export default function Records({
         captures={captures.filter(matches)}
         onDetail={onDetail}
         onCapture={onCapture}
+        onShare={onShare}
+        busy={busy}
       />
       <section className="ascend-card records-trend-card">
         <div>
@@ -129,25 +135,36 @@ export default function Records({
                 const session = sessions.find((s) => s.id === item.id),
                   ex = getExercise(item.exerciseId);
                 return (
-                  <button
-                    key={item.id}
-                    className="ascend-card ascend-record-row"
-                    onClick={() => (session ? onDetail(session) : onCapture(item as CaptureRecord))}
-                  >
-                    <SessionThumbnail session={item} userId={userId} />
-                    <div>
-                      <h3>
-                        {ex.name} · {item.cameraDirection}
-                      </h3>
-                      <p>
-                        {ex.bodyPart} · {item.side === 'left' ? '왼쪽' : '오른쪽'} ·{' '}
-                        {session
-                          ? `최대 ${session.analysis.max.toFixed(0)}°${session.analysis.repetitions !== null ? ` · ${session.analysis.repetitions}회` : ''}`
-                          : '분석 대기 · 원본 영상'}
-                      </p>
-                    </div>
-                    <time>{duration(item.duration)}</time>
-                  </button>
+                  <div key={item.id} className="ascend-card ascend-record-row">
+                    <button
+                      className="record-open"
+                      onClick={() =>
+                        session ? onDetail(session) : onCapture(item as CaptureRecord)
+                      }
+                    >
+                      <SessionThumbnail session={item} userId={userId} />
+                      <div className="record-summary">
+                        <h3>
+                          {ex.name} · {item.cameraDirection}
+                        </h3>
+                        <p>
+                          {ex.bodyPart} · {item.side === 'left' ? '왼쪽' : '오른쪽'} ·{' '}
+                          {session
+                            ? `최대 ${session.analysis.max.toFixed(0)}°${session.analysis.repetitions !== null ? ` · ${session.analysis.repetitions}회` : ''}`
+                            : '분석 대기 · 원본 영상'}
+                        </p>
+                        <time>{duration(item.duration)}</time>
+                      </div>
+                    </button>
+                    <button
+                      className="record-share-button"
+                      disabled={busy}
+                      aria-label={`${dateLabel(item.recordedAt)} ${ex.name} 영상 공유`}
+                      onClick={() => onShare(item)}
+                    >
+                      <Share2 size={19} />
+                    </button>
+                  </div>
                 );
               })}
           </section>

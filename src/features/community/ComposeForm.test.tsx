@@ -61,7 +61,12 @@ it('attaches the just-recorded video automatically and toggles optional analysis
   expect(checkbox.checked).toBe(false);
   await user.click(screen.getByLabelText('운동 이름'));
   expect(submit).not.toHaveBeenCalled();
-  await user.click(screen.getByRole('button', { name: '게시하기' }));
+  const upload = screen.getByRole('button', { name: '업로드' });
+  expect(upload.closest('.modal-heading')).not.toBeNull();
+  expect(upload.getAttribute('form')).toBe(
+    screen.getByRole('form', { name: '커뮤니티 게시물 작성' }).id,
+  );
+  await user.click(upload);
   expect(submit.mock.calls[0][0].shared).toEqual({ exerciseName: '스쿼트' });
   expect(submit.mock.calls[0][1].type).toBe('video/webm');
   expect(submit.mock.calls[0][1].size).toBe(4);
@@ -98,7 +103,7 @@ it('previews only the chosen attachment and submits it with the explicit sharing
     'blob:test-selected-attachment',
   );
   expect(submit).not.toHaveBeenCalled();
-  await user.click(screen.getByRole('button', { name: '게시하기' }));
+  await user.click(screen.getByRole('button', { name: '업로드' }));
   expect(submit).toHaveBeenCalledWith(
     expect.objectContaining({ content: '오늘의 움직임을 남겨요.', shared: {} }),
     file,

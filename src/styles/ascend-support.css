@@ -255,3 +255,78 @@
   min-height: 40px;
   font-size: 14px;
 }
+.ascend-app .compose-modal .modal-heading h2 {
+  flex: 1;
+  min-width: 0;
+  font-size: 20px;
+}
+.ascend-app .compose-modal .compose-upload {
+  flex-shrink: 0;
+  margin: 0;
+  width: auto;
+  min-height: 42px;
+  padding: 10px 13px;
+  border-radius: 22px;
+  font-size: 13px;
+}
+.compose-modal .compose-media-preview {
+  max-height: none;
+  margin: 16px 0;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #ececdb;
+}
+.compose-modal .compose-media-preview video,
+.compose-modal .compose-media-preview img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: min(42dvh, 360px);
+  object-fit: contain;
+}
+.compose-modal .attachment-field {
+  display: grid;
+  gap: 10px;
+  margin-top: 20px;
+}
+.compose-modal .compose-attachment-notice {
+  padding: 12px;
+  margin-bottom: 16px;
+  background: #f1e8c9;
+  border-radius: 14px;
+  color: #786847;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.record-share-latest,
+.feedback-share-button {
+  margin: 12px 0;
+}
+.ascend-record-row .record-open {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  text-align: left;
+  padding: 0;
+}
+.ascend-record-row .record-summary {
+  flex: 1;
+  min-width: 0;
+}
+.ascend-record-row .record-summary time {
+  display: block;
+  margin-top: 5px;
+  font-size: 11px;
+}
+.ascend-record-row .record-share-button {
+  display: grid;
+  place-items: center;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #edf1dc;
+  color: #28503b;
+}

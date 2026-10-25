@@ -103,7 +103,7 @@ describe('four-tab mobile journey', () => {
     await user.click(screen.getByRole('button', { name: '커뮤니티' }));
     await user.click(screen.getByRole('button', { name: '게시글 작성' }));
     await user.type(screen.getByLabelText('나누고 싶은 이야기'), '오늘도 나의 속도로 한 걸음!');
-    await user.click(screen.getByRole('button', { name: '게시하기' }));
+    await user.click(screen.getByRole('button', { name: '업로드' }));
     await screen.findByText('오늘도 나의 속도로 한 걸음!');
     expect((await readData('local-demo')).posts[0].shared).toEqual({});
     await user.click(screen.getByRole('button', { name: '좋아요' }));

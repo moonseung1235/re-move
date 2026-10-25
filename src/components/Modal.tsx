@@ -7,11 +7,15 @@ export default function Modal({
   children,
   onClose,
   wide = false,
+  headerActions,
+  className = '',
 }: {
   title: string;
   children: ReactNode;
   onClose: () => void;
   wide?: boolean;
+  headerActions?: ReactNode;
+  className?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const error = useContext(AppErrorContext);
@@ -23,7 +27,7 @@ export default function Modal({
   return (
     <dialog
       ref={ref}
-      className={`modal ${wide ? 'wide' : ''}`}
+      className={`modal ${wide ? 'wide' : ''} ${className}`}
       onCancel={(e) => {
         e.preventDefault();
         onClose();
@@ -34,7 +38,8 @@ export default function Modal({
     >
       <div className="modal-heading">
         <h2>{title}</h2>
-        <button className="icon-button" onClick={onClose} aria-label="닫기">
+        {headerActions}
+        <button type="button" className="icon-button" onClick={onClose} aria-label="닫기">
           <X size={22} />
         </button>
       </div>

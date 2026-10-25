@@ -1,6 +1,6 @@
 import { createId } from '../../utils/id';
-import { useEffect, useState } from 'react';
-import { Heart } from 'lucide-react';
+import { useEffect, useId, useState } from 'react';
+import { Upload } from 'lucide-react';
 import type { Session, Post } from '../../types';
 import Modal from '../../components/Modal';
 import { previousSession } from '../record-comparison/compare';
@@ -16,6 +16,7 @@ export default function ComposeForm({
   onSubmit,
   initialMedia,
   initialCaption = '',
+  attachmentNotice,
 }: {
   session?: Session;
   sessions: Session[];
@@ -26,7 +27,9 @@ export default function ComposeForm({
   onSubmit: (p: Post, media?: Blob) => void;
   initialMedia?: Blob;
   initialCaption?: string;
+  attachmentNotice?: string;
 }) {
+  const formId = useId();
   const [content, setContent] = useState(initialCaption),
     [choices, setChoices] = useState<string[]>([]),
     [file, setFile] = useState<File | undefined>(() =>
@@ -48,10 +51,28 @@ export default function ComposeForm({
     setChoices((c) => (c.includes(name) ? c.filter((v) => v !== name) : [...c, name]));
   }
   return (
-    <Modal title="게시물 만들기" onClose={onClose}>
+    <Modal
+      title="게시물 만들기"
+      onClose={onClose}
+      className="compose-modal"
+      headerActions={
+        <button
+          className="primary compose-upload"
+          type="submit"
+          form={formId}
+          disabled={busy || !!error || (!content.trim() && !file)}
+        >
+          <Upload size={16} />
+          {busy ? '업로드 중…' : '업로드'}
+        </button>
+      }
+    >
       <form
+        id={formId}
+        aria-label="커뮤니티 게시물 작성"
         onSubmit={(e) => {
           e.preventDefault();
+          if (busy || error) return;
           if (!content.trim() && !file) return;
           if (file && file.size > 20 * 1024 * 1024) {
             setError('공유할 영상은 20MB 이하여야 해요. 짧게 촬영해 주세요.');
@@ -73,6 +94,11 @@ export default function ComposeForm({
           );
         }}
       >
+        {attachmentNotice && (
+          <p className="compose-attachment-notice" role="status">
+            {attachmentNotice}
+          </p>
+        )}
         <label className="field-label">
           나누고 싶은 이야기
           <textarea
@@ -158,16 +184,16 @@ export default function ComposeForm({
             </button>
           </p>
         )}
-        {error && <p className="error">{error}</p>}
+        {error && (
+          <p className="error" role="alert">
+            {error}
+          </p>
+        )}
         <p className="post-visibility-note">
           {userId === 'local-demo'
             ? '이 기기의 데모 피드에 게시됩니다.'
             : '게시하면 선택한 영상과 글이 피드에 공유됩니다.'}
         </p>
-        <button className="primary full-width" disabled={busy || !!error}>
-          <Heart size={17} />
-          {busy ? '게시 중…' : '게시하기'}
-        </button>
       </form>
     </Modal>
   );

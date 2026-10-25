@@ -30,7 +30,14 @@ import { createId } from './utils/id';
 import { exercises, getExercise } from './features/exercise-tracking/exercises';
 import { matchedExercises } from './features/exercise-tracking/personalize';
 import type { CaptureShare } from './features/camera/recording';
-import { emptyData, readData, writeData, saveMedia, deleteMedia } from './services/local';
+import {
+  emptyData,
+  readData,
+  writeData,
+  saveMedia,
+  readMedia,
+  deleteMedia,
+} from './services/local';
 import {
   supabase,
   loadCloud,
@@ -106,7 +113,8 @@ export default function App() {
   const [captureReview, setCaptureReview] = useState<CaptureRecord>(),
     [captureSide, setCaptureSide] = useState<Side>('left'),
     [composeMedia, setComposeMedia] = useState<Blob>(),
-    [composeCaption, setComposeCaption] = useState('');
+    [composeCaption, setComposeCaption] = useState(''),
+    [composeNotice, setComposeNotice] = useState('');
   const mutations = useRef<Promise<void>>(Promise.resolve());
   const userRef = useRef(userId),
     dataRef = useRef(data);
@@ -277,10 +285,51 @@ export default function App() {
     setExerciseId(capture.exerciseId);
     window.location.hash = `/exercise/${capture.exerciseId}`;
   }
+  function openComposer({
+    session,
+    media,
+    caption = '',
+    notice = '',
+  }: {
+    session?: Session;
+    media?: Blob;
+    caption?: string;
+    notice?: string;
+  } = {}) {
+    setComposeMedia(media);
+    setComposeCaption(caption);
+    setComposeNotice(notice);
+    setCompose(session ?? 'new');
+  }
+  function closeComposer() {
+    setCompose(undefined);
+    setComposeMedia(undefined);
+    setComposeCaption('');
+    setComposeNotice('');
+  }
   function composeCapture(draft: CaptureShare) {
-    setComposeMedia(draft.blob);
-    setComposeCaption(getExercise(draft.capture.exerciseId).name);
-    setCompose(draft.session ?? 'new');
+    openComposer({
+      session: draft.session,
+      media: draft.blob,
+      caption: getExercise(draft.capture.exerciseId).name,
+    });
+  }
+  async function composeRecord(record: Session | CaptureRecord) {
+    const account = userRef.current;
+    const media = record.mediaId ? await readMedia(account, record.mediaId) : undefined;
+    if (userRef.current !== account) return;
+    openComposer({
+      session:
+        'analysis' in record
+          ? record
+          : dataRef.current.sessions.find((session) => session.id === record.id),
+      media,
+      caption: getExercise(record.exerciseId).name,
+      notice: media
+        ? ''
+        : '이 기기에 원본 영상이 없어요. 글이나 선택한 분석만 공유하거나 영상을 직접 첨부할 수 있어요.',
+    });
+    setDetail(undefined);
   }
   async function removeSession(session: Session) {
     await update((current) => ({
@@ -318,9 +367,7 @@ export default function App() {
       { ...post, mediaId: media ? post.id : undefined, mediaType: media?.type },
       ...dataRef.current.posts,
     ]);
-    setCompose(undefined);
-    setComposeMedia(undefined);
-    setComposeCaption('');
+    closeComposer();
     setFeedFilter('all');
     navigate('community');
     setToast(
@@ -507,6 +554,8 @@ export default function App() {
                         captures={data.captures}
                         onCapture={openCapture}
                         onDetail={setDetail}
+                        onShare={(record) => void run(() => composeRecord(record))}
+                        busy={busy}
                         onStart={() => navigate('home')}
                       />
                     )}
@@ -538,11 +587,7 @@ export default function App() {
                           setFocusedPost(undefined);
                           window.history.replaceState(null, '', '#/community');
                         }}
-                        onCompose={() => {
-                          setComposeMedia(undefined);
-                          setComposeCaption('');
-                          setCompose('new');
-                        }}
+                        onCompose={() => openComposer()}
                         onRefresh={() => void run(() => refreshPosts())}
                         onLike={(post) => void run(() => like(post))}
                         onComment={(post, text) => run(() => comment(post, text))}
@@ -798,15 +843,12 @@ export default function App() {
             session={compose === 'new' ? undefined : compose}
             initialMedia={composeMedia}
             initialCaption={composeCaption}
+            attachmentNotice={composeNotice}
             sessions={data.sessions}
             nickname={data.nickname}
             userId={userId}
             busy={busy}
-            onClose={() => {
-              setCompose(undefined);
-              setComposeMedia(undefined);
-              setComposeCaption('');
-            }}
+            onClose={closeComposer}
             onSubmit={(post, media) => void run(() => publish(post, media))}
           />
         )}
@@ -827,12 +869,7 @@ export default function App() {
             onBack={() => setDetail(undefined)}
             onRecords={() => navigate('records')}
             onDelete={() => void run(() => removeSession(detail))}
-            onShare={() => {
-              setComposeMedia(undefined);
-              setComposeCaption('');
-              setCompose(detail);
-              setDetail(undefined);
-            }}
+            onShare={() => void run(() => composeRecord(detail))}
             onRemoveVideo={() =>
               void run(async () => {
                 if (detail.mediaId) await deleteMedia(userId, detail.mediaId);
