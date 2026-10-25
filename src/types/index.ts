@@ -11,6 +11,7 @@ export type RehabGoal = {
   id: string;
   condition: string;
   exerciseIds: string[];
+  activityText?: string;
   weekdays: number[];
   repetitions: number;
   targetAngle: number;

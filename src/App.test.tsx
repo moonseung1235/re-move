@@ -52,6 +52,7 @@ describe('four-tab mobile journey', () => {
     await user.click(screen.getByRole('button', { name: '나에게 맞는 활동 목표 설정' }));
     await screen.findByRole('heading', { name: '목표 설정' });
     await user.type(screen.getByLabelText('병명 또는 재활 상황'), '재활 활동 목표 테스트');
+    await user.type(screen.getByLabelText('재활 활동 종류'), '걷기와 무릎 스트레칭');
     await user.click(screen.getByRole('button', { name: '목요일' }));
     await user.click(screen.getByRole('button', { name: '금요일' }));
     await user.click(screen.getByRole('button', { name: '10회' }));
@@ -62,6 +63,8 @@ describe('four-tab mobile journey', () => {
     );
     await user.click(screen.getByRole('button', { name: '저장하기' }));
     await screen.findByRole('heading', { name: '재활 계획 수립' });
+    expect(screen.getByRole('heading', { name: '재활 활동' })).toBeDefined();
+    expect(screen.getByText('걷기와 무릎 스트레칭')).toBeDefined();
     const savedGoal = (await readData('local-demo')).preferences.rehabilitation;
     expect(savedGoal?.weekdays).toEqual([1, 2, 3]);
     expect(savedGoal?.repetitions).toBe(10);

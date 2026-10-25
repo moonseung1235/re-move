@@ -73,7 +73,7 @@ export default function RehabPlan({
         </div>
       </section>
       <section className="ascend-card">
-        <h2>선택한 재활 활동</h2>
+        <h2>재활 활동</h2>
         {goal ? (
           <table className="ascend-plan-table">
             <thead>
@@ -85,17 +85,26 @@ export default function RehabPlan({
               </tr>
             </thead>
             <tbody>
-              {goal.exerciseIds.map((id) => (
-                <tr key={id}>
-                  <th>
-                    {getExercise(id).name}
-                    <small> · {getExercise(id).cameraDirection}</small>
-                  </th>
+              {goal.activityText ? (
+                <tr>
+                  <th className="plan-activity-text">{goal.activityText}</th>
                   <td>주 {goal.weekdays.length}일</td>
                   <td>{goal.repetitions}회</td>
-                  <td>{id === goal.targetExerciseId ? `${goal.targetAngle}°` : '—'}</td>
+                  <td>{goal.targetAngle}°</td>
                 </tr>
-              ))}
+              ) : (
+                goal.exerciseIds.map((id) => (
+                  <tr key={id}>
+                    <th>
+                      {getExercise(id).name}
+                      <small> · {getExercise(id).cameraDirection}</small>
+                    </th>
+                    <td>주 {goal.weekdays.length}일</td>
+                    <td>{goal.repetitions}회</td>
+                    <td>{id === goal.targetExerciseId ? `${goal.targetAngle}°` : '—'}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         ) : (

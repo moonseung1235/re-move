@@ -767,7 +767,7 @@ export default function App() {
                   },
                 }));
                 navigate('home');
-                setSelected(getExercise(rehab.exerciseIds[0]));
+                setSelected(getExercise(rehab.targetExerciseId));
               })
             }
           />

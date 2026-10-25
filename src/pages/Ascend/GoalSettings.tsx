@@ -25,7 +25,11 @@ export default function GoalSettings({
 }) {
   const defaultExerciseId = symptoms ? (matchedExercises(symptoms)[0]?.id ?? 'knee') : 'knee';
   const [condition, setCondition] = useState(rehabilitation?.condition ?? ''),
-    [selected, setSelected] = useState(rehabilitation?.exerciseIds ?? [defaultExerciseId]),
+    [activityText, setActivityText] = useState(
+      rehabilitation?.activityText ??
+        rehabilitation?.exerciseIds.map((id) => getExercise(id).name).join(', ') ??
+        '',
+    ),
     [weekdays, setWeekdays] = useState(rehabilitation?.weekdays ?? [1, 2, 3, 4, 5]),
     [repetitions, setRepetitions] = useState(rehabilitation?.repetitions ?? 8),
     [targetAngle, setTargetAngle] = useState(rehabilitation?.targetAngle ?? 175),
@@ -42,19 +46,18 @@ export default function GoalSettings({
   const current = [...sessions]
     .filter((s) => s.exerciseId === targetExerciseId && s.side === side)
     .sort((a, b) => b.recordedAt.localeCompare(a.recordedAt))[0];
-  function toggleExercise(id: string) {
-    const next = selected.includes(id) ? selected.filter((item) => item !== id) : [...selected, id];
-    setSelected(next);
-    if (!next.includes(targetExerciseId) && next[0]) setTargetExerciseId(next[0]);
-  }
   return (
     <section className="ascend-subpage goal-settings">
       <ScreenHeading title="목표 설정" onBack={onClose} />
       <form
         onSubmit={(event) => {
           event.preventDefault();
-          if (!selected.length || !weekdays.length) {
-            setError('활동과 요일을 하나 이상 선택해 주세요.');
+          if (!activityText.trim()) {
+            setError('재활 활동 종류를 입력해 주세요.');
+            return;
+          }
+          if (!weekdays.length) {
+            setError('요일을 하나 이상 선택해 주세요.');
             return;
           }
           const id = rehabilitation?.id ?? goal?.id ?? createId();
@@ -70,7 +73,8 @@ export default function GoalSettings({
             {
               id,
               condition: condition.trim(),
-              exerciseIds: selected,
+              activityText: activityText.trim(),
+              exerciseIds: [...new Set([...(rehabilitation?.exerciseIds ?? []), targetExerciseId])],
               weekdays: [...weekdays].sort(),
               repetitions,
               targetAngle,
@@ -148,20 +152,16 @@ export default function GoalSettings({
           )}
         </section>
         <section className="ascend-card">
-          <p className="ascend-label">재활 활동 종류</p>
-          <div className="ascend-pills">
-            {exercises.map((ex) => (
-              <button
-                type="button"
-                key={ex.id}
-                aria-pressed={selected.includes(ex.id)}
-                className={selected.includes(ex.id) ? 'selected' : ''}
-                onClick={() => toggleExercise(ex.id)}
-              >
-                {ex.name}
-              </button>
-            ))}
-          </div>
+          <label className="field-label">
+            재활 활동 종류
+            <textarea
+              rows={3}
+              maxLength={500}
+              value={activityText}
+              onChange={(event) => setActivityText(event.target.value)}
+              placeholder="예: 걷기, 무릎 굽히기, 스트레칭"
+            />
+          </label>
         </section>
         <section className="ascend-card">
           <div className="ascend-section-title">
@@ -218,13 +218,11 @@ export default function GoalSettings({
                   value={targetExerciseId}
                   onChange={(e) => setTargetExerciseId(e.target.value)}
                 >
-                  {exercises
-                    .filter((ex) => selected.includes(ex.id))
-                    .map((ex) => (
-                      <option key={ex.id} value={ex.id}>
-                        {ex.bodyPart}
-                      </option>
-                    ))}
+                  {exercises.map((ex) => (
+                    <option key={ex.id} value={ex.id}>
+                      {ex.bodyPart}
+                    </option>
+                  ))}
                 </select>
                 <select
                   aria-label="목표 측정할 쪽"

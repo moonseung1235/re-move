@@ -302,6 +302,10 @@
 .feedback-share-button {
   margin: 12px 0;
 }
+.plan-activity-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 .ascend-record-row .record-open {
   display: flex;
   flex: 1;
