@@ -1,22 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import * as THREE from 'three';
 import type { Frame, HandLandmarks, Landmark } from '../types';
 import {
   estimateBodyYaw,
   getHandOrientation,
   HUMAN_HAND_PALM_NORMAL_AXIS,
   HUMAN_HAND_THUMB_AXIS,
-  isBilateralSquatBend,
   landmarkAngle3D,
   modelSideForDisplay,
   resolveHandLandmarks,
-  stabilizeLegFromImage,
 } from './PoseAvatar3D';
-
-const posePoint = (x: number, y: number, z: number) => ({
-  position: new THREE.Vector3(x, y, z),
-  confidence: 1,
-});
 
 const landmark = (x: number, y: number, z = 0): Landmark => ({
   x,
@@ -46,39 +38,6 @@ function openPalm(side: 'left' | 'right'): HandLandmarks {
 }
 
 describe('3D avatar retargeting constraints', () => {
-  it('treats a missing image-space bend as a fully extended leg', () => {
-    const leg = [
-      posePoint(0, 1, 0),
-      posePoint(0.24, 0, 0.28),
-      posePoint(0, -1, 0),
-      posePoint(0, -1.1, 0.25),
-    ];
-    const corrected = stabilizeLegFromImage(leg, null);
-    expect(corrected[1]?.position.x).toBeCloseTo(0, 5);
-    expect(corrected[1]?.position.z).toBeCloseTo(0, 5);
-    expect(corrected[1]?.position.y).toBeCloseTo(0, 5);
-    expect(corrected[2]?.position).toEqual(leg[2].position);
-  });
-
-  it('preserves shallow knee flexion instead of pinning the leg straight', () => {
-    const leg = [
-      posePoint(0, 1, 0),
-      posePoint(0.18, 0, 0.22),
-      posePoint(0, -1, 0),
-      posePoint(0, -1.1, 0.25),
-    ];
-    const corrected = stabilizeLegFromImage(leg, 160);
-    expect(corrected[1]?.position.x).toBeCloseTo(leg[1].position.x, 5);
-    expect(corrected[1]?.position.z).toBeCloseTo(leg[1].position.z, 5);
-    expect(corrected[2]?.position.x).not.toBeCloseTo(leg[2].position.x, 3);
-  });
-
-  it('recognizes synchronized shallow flexion as a bilateral squat', () => {
-    expect(isBilateralSquatBend(164, 166)).toBe(true);
-    expect(isBilateralSquatBend(160, 176)).toBe(false);
-    expect(isBilateralSquatBend(null, 160)).toBe(false);
-  });
-
   it('normalizes the measured diagonal body axis instead of assuming a fixed camera angle', () => {
     const world: (Landmark | null)[] = Array(33).fill(null);
     world[23] = landmark(0.35, 0, -0.35);

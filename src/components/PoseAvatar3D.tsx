@@ -3,6 +3,15 @@ import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import type { Exercise, Frame, Landmark, Side } from '../types';
+import {
+  createSoleMarkers,
+  estimateContactHeights,
+  groundStandingRig,
+  type ContactHeights,
+  type ContactState,
+  type GroundFoot,
+  type GroundLegRig,
+} from '../features/pose-analysis/grounding';
 
 export type PoseAvatarView = 'front' | 'side' | 'back' | 'angle';
 type Rig = {
@@ -29,15 +38,6 @@ type DirectionState = {
   pending?: THREE.Vector3;
   pendingCount: number;
 };
-type FootSupport = 'left' | 'right' | 'both';
-type LegMotionState = {
-  trackingAngle: boolean;
-  missingEvidence: number;
-  lastAngle: number;
-};
-
-// Rollback switch: false disables the support-foot pivot without changing retargeting.
-const USE_SUPPORT_FOOT_PIVOT = true;
 
 // Verified from HUMAN.fbx bind-pose vertices in each hand bone's local space.
 // The mesh has sculpted fingers but no individual finger/thumb bones.
@@ -262,6 +262,8 @@ function getPose(frame: Frame | undefined, mirrored: boolean, yaw = 0) {
     rightArm: [rightShoulder, p(14), p(16), p(20)],
     leftLeg: [leftHip, p(25), p(27), p(31)],
     rightLeg: [rightHip, p(26), p(28), p(32)],
+    leftHeel: p(29),
+    rightHeel: p(30),
   };
 }
 
@@ -404,63 +406,6 @@ export function landmarkAngle3D(
   return THREE.MathUtils.radToDeg(ab.angleTo(cb));
 }
 
-/** Make the 3D knee agree with image-space; only missing evidence falls back to standing. */
-export function stabilizeLegFromImage(
-  leg: (PosePoint | null)[],
-  imageAngle: number | null,
-): (PosePoint | null)[] {
-  const [hip, knee, ankle, toe] = leg;
-  if (!hip || !knee || !ankle) return leg;
-  // Depth noise commonly makes a straight leg look bent in world landmarks. Only
-  // image-space evidence may introduce knee flexion; otherwise assume extension.
-  const angle = imageAngle ?? 180;
-  if (!Number.isFinite(angle)) return leg;
-
-  const upperLength = hip.position.distanceTo(knee.position);
-  const lowerLength = knee.position.distanceTo(ankle.position);
-  const confidence = Math.min(hip.confidence, knee.confidence, ankle.confidence);
-  if (upperLength < 1e-5 || lowerLength < 1e-5) return leg;
-
-  // Do not erase the shallow flexion at the beginning/end of a squat. The previous
-  // 154-degree cutoff turned a visibly flexed knee into a fully rigid leg.
-  if (angle >= 174) {
-    const total = upperLength + lowerLength;
-    const alignedKnee = hip.position.clone().lerp(ankle.position, upperLength / total);
-    const extension =
-      imageAngle === null
-        ? 1
-        : THREE.MathUtils.smoothstep(angle, 174, 179) * (0.78 + confidence * 0.22);
-    const stableKnee: PosePoint = {
-      position: knee.position.clone().lerp(alignedKnee, extension),
-      confidence,
-    };
-    return [hip, stableKnee, ankle, toe];
-  }
-
-  const upper = hip.position.clone().sub(knee.position).normalize();
-  const measuredLower = ankle.position.clone().sub(knee.position);
-  const projection = upper.clone().multiplyScalar(measuredLower.dot(upper));
-  let bend = measuredLower.clone().sub(projection);
-  if (bend.lengthSq() < 1e-6) bend = new THREE.Vector3(-upper.y, upper.x, 0);
-  if (bend.lengthSq() < 1e-6) bend = new THREE.Vector3(0, -upper.z, upper.y);
-  bend.normalize();
-  const radians = THREE.MathUtils.degToRad(THREE.MathUtils.clamp(angle, 35, 178));
-  const correctedPosition = knee.position
-    .clone()
-    .add(upper.multiplyScalar(Math.cos(radians) * lowerLength))
-    .add(bend.multiplyScalar(Math.sin(radians) * lowerLength));
-  const blend = 0.55 + confidence * 0.35;
-  const stablePosition = ankle.position.clone().lerp(correctedPosition, blend);
-  const stableAnkle: PosePoint = { position: stablePosition, confidence };
-  const stableToe = toe
-    ? {
-        position: toe.position.clone().add(stablePosition.clone().sub(ankle.position)),
-        confidence: Math.min(toe.confidence, confidence),
-      }
-    : null;
-  return [hip, knee, stableAnkle, stableToe];
-}
-
 function normalized(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9]/g, '');
 }
@@ -485,32 +430,6 @@ function limitedDirection(from: THREE.Vector3, to: THREE.Vector3, maxAngle: numb
   const turn = new THREE.Quaternion().setFromUnitVectors(from, to);
   const step = new THREE.Quaternion().identity().slerp(turn, maxAngle / angle);
   return from.clone().applyQuaternion(step).normalize();
-}
-
-export function isBilateralSquatBend(left: number | null, right: number | null) {
-  if (left === null || right === null || !Number.isFinite(left) || !Number.isFinite(right))
-    return false;
-  return Math.max(left, right) < 174;
-}
-
-function resolvedLegAngle(state: LegMotionState, measured: number | null, isNewFrame: boolean) {
-  if (!isNewFrame) return state.trackingAngle ? state.lastAngle : null;
-
-  if (measured === null || !Number.isFinite(measured)) {
-    state.missingEvidence += 1;
-    // Hold the most recent bend briefly through an occluded knee instead of snapping
-    // the whole leg straight in a single frame. Sustained loss still returns to stance.
-    if (state.missingEvidence >= 6) state.trackingAngle = false;
-  } else {
-    const next = THREE.MathUtils.clamp(measured, 35, 180);
-    state.lastAngle = state.trackingAngle
-      ? THREE.MathUtils.lerp(state.lastAngle, next, 0.58)
-      : next;
-    state.trackingAngle = true;
-    state.missingEvidence = 0;
-  }
-
-  return state.trackingAngle ? state.lastAngle : null;
 }
 
 /** A client-only FBX avatar driven from MediaPipe's 33 pose landmarks. */
@@ -622,28 +541,16 @@ export function PoseAvatar3D({
     // Smooth directions (not absolute positions) so body translations do not make the rig lag.
     const trackedDirections = new Map<string, DirectionState>();
     const trackedHands = new Map<string, HandState>();
-    const legMotion: Record<'left' | 'right', LegMotionState> = {
-      left: {
-        trackingAngle: false,
-        missingEvidence: 0,
-        lastAngle: 180,
-      },
-      right: {
-        trackingAngle: false,
-        missingEvidence: 0,
-        lastAngle: 180,
-      },
-    };
     let observedFrameTime = Number.NaN;
+    let observedFrame: Frame | undefined;
     let filteredBodyYaw = 0;
     let hasBodyYaw = false;
     let avatarRoot: THREE.Group | undefined;
-    const avatarBasePosition = new THREE.Vector3();
-    const groundMarkers = new Map<'left' | 'right', THREE.Object3D>();
-    const markerRestPosition = new Map<'left' | 'right', THREE.Vector3>();
-    let footSupport: FootSupport = 'both';
-    let filteredLeftFootY: number | undefined;
-    let filteredRightFootY: number | undefined;
+    const groundLegs = new Map<Side, GroundLegRig>();
+    const contactState: ContactState = { support: 'both' };
+    let contactHeights: ContactHeights = { left: 0, right: 0 };
+    let hasEstimatedContact = false;
+    let modelLegLength = 1;
     const loader = new FBXLoader();
     loader.load(
       '/models/HUMAN.fbx',
@@ -665,7 +572,6 @@ export function PoseAvatar3D({
         avatar.scale.setScalar(2.35 / height);
         avatar.position.y = -1.18 - box.min.y * avatar.scale.y;
         avatarRoot = avatar;
-        avatarBasePosition.copy(avatar.position);
         avatar.traverse((object) => {
           if (object instanceof THREE.Mesh) {
             object.castShadow = true;
@@ -721,18 +627,23 @@ export function PoseAvatar3D({
         bind('rightUpLeg', ['rightupleg', 'rightthigh', 'upperlegr']);
         bind('rightLeg', ['rightleg', 'rightcalf', 'rightlowerleg', 'lowerlegr']);
         bind('rightFoot', ['rightfoot', 'footr']);
+        const lengths: number[] = [];
         for (const side of ['left', 'right'] as const) {
-          const foot = rig.get(`${side}Foot`)?.bone;
-          groundMarkers.set(
-            side,
-            foot?.children.find((child): child is THREE.Bone => child instanceof THREE.Bone) ??
-              foot ??
-              avatar,
+          const hip = rig.get(`${side}UpLeg`)?.bone;
+          const knee = rig.get(`${side}Leg`)?.bone;
+          const ankle = rig.get(`${side}Foot`)?.bone;
+          if (!hip || !knee || !ankle) continue;
+          const soles = createSoleMarkers(avatar, ankle);
+          groundLegs.set(side, { hip, knee, ankle, soles });
+          const hipPosition = hip.getWorldPosition(new THREE.Vector3());
+          const kneePosition = knee.getWorldPosition(new THREE.Vector3());
+          const anklePosition = ankle.getWorldPosition(new THREE.Vector3());
+          lengths.push(
+            hipPosition.distanceTo(kneePosition) + kneePosition.distanceTo(anklePosition),
           );
         }
-        avatar.updateMatrixWorld(true);
-        for (const [side, marker] of groundMarkers)
-          markerRestPosition.set(side, marker.getWorldPosition(new THREE.Vector3()));
+        if (lengths.length)
+          modelLegLength = lengths.reduce((sum, length) => sum + length, 0) / lengths.length;
         setStatus('ready');
       },
       undefined,
@@ -877,76 +788,51 @@ export function PoseAvatar3D({
       const wanted = correction.multiply(item.rest);
       item.bone.quaternion.slerp(wanted, isNewLandmarkFrame ? 0.48 : 0.3);
     };
-    const updateFootSupport = (pose: ReturnType<typeof getPose>, isNewFrame: boolean) => {
-      if (!isNewFrame) return;
-      const leftY = pose.leftLeg[2]?.position.y ?? pose.leftLeg[3]?.position.y;
-      const rightY = pose.rightLeg[2]?.position.y ?? pose.rightLeg[3]?.position.y;
-      if (leftY !== undefined)
-        filteredLeftFootY =
-          filteredLeftFootY === undefined
-            ? leftY
-            : THREE.MathUtils.lerp(filteredLeftFootY, leftY, 0.24);
-      if (rightY !== undefined)
-        filteredRightFootY =
-          filteredRightFootY === undefined
-            ? rightY
-            : THREE.MathUtils.lerp(filteredRightFootY, rightY, 0.24);
-      if (filteredLeftFootY !== undefined && filteredRightFootY !== undefined) {
-        const difference = filteredRightFootY - filteredLeftFootY;
-        if (Math.abs(difference) < 0.08) {
-          // Ground contact is independent from knee flexion. If both ankles remain at
-          // nearly the same height, keep both feet planted even while both knees bend.
-          footSupport = 'both';
-          return;
-        }
-        // Only a clear height gap changes support to one foot. The dead band prevents
-        // landmark noise from alternating the root pivot during a squat.
-        if (Math.abs(difference) > 0.14) footSupport = difference > 0 ? 'left' : 'right';
-      } else if (leftY !== undefined) footSupport = 'left';
-      else if (rightY !== undefined) footSupport = 'right';
-    };
-    const anchorBodyToSupportFoot = (
-      modelLeft: 'left' | 'right',
-      modelRight: 'left' | 'right',
-      bilateralBend: boolean,
+    const groundBody = (
+      pose: ReturnType<typeof getPose>,
+      modelLeft: Side,
+      modelRight: Side,
+      isNewFrame: boolean,
+      sampleTime: number,
     ) => {
-      if (!USE_SUPPORT_FOOT_PIVOT || !avatarRoot) return;
-      avatarRoot.updateMatrixWorld(true);
-      const active =
-        footSupport === 'both'
-          ? [modelLeft, modelRight]
-          : [footSupport === 'left' ? modelLeft : modelRight];
-      const corrections = active.flatMap((modelSide) => {
-        const marker = groundMarkers.get(modelSide);
-        const rest = markerRestPosition.get(modelSide);
-        if (!marker || !rest) return [];
-        const current = marker.getWorldPosition(new THREE.Vector3());
-        return current.toArray().every(Number.isFinite) ? [rest.clone().sub(current)] : [];
+      if (!avatarRoot) return;
+      const left = groundLegs.get(modelLeft);
+      const right = groundLegs.get(modelRight);
+      if (!left || !right) return;
+      const leftFoot: GroundFoot = {
+        hip: pose.leftLeg[0],
+        knee: pose.leftLeg[1],
+        ankle: pose.leftLeg[2],
+        heel: pose.leftHeel,
+        toe: pose.leftLeg[3],
+      };
+      const rightFoot: GroundFoot = {
+        hip: pose.rightLeg[0],
+        knee: pose.rightLeg[1],
+        ankle: pose.rightLeg[2],
+        heel: pose.rightHeel,
+        toe: pose.rightLeg[3],
+      };
+      if (isNewFrame || !hasEstimatedContact || !frameRef.current?.landmarks.length) {
+        contactHeights = estimateContactHeights(
+          leftFoot,
+          rightFoot,
+          modelLegLength,
+          contactState,
+          sampleTime,
+        );
+        hasEstimatedContact = true;
+      }
+      const pole = (foot: GroundFoot, leg: GroundLegRig) =>
+        foot.hip && foot.knee
+          ? leg.hip
+              .getWorldPosition(new THREE.Vector3())
+              .add(foot.knee.position.clone().sub(foot.hip.position))
+          : undefined;
+      groundStandingRig(avatarRoot, { left, right }, contactHeights, floor.position.y, {
+        left: pole(leftFoot, left),
+        right: pole(rightFoot, right),
       });
-      if (!corrections.length) return;
-      const correction = corrections
-        .reduce((sum, value) => sum.add(value), new THREE.Vector3())
-        .multiplyScalar(1 / corrections.length);
-      if (correction.lengthSq() < 0.00000625) return;
-      const target = avatarRoot.position.clone().add(correction);
-      target.x = THREE.MathUtils.clamp(
-        target.x,
-        avatarBasePosition.x - 0.48,
-        avatarBasePosition.x + 0.48,
-      );
-      target.y = THREE.MathUtils.clamp(
-        target.y,
-        avatarBasePosition.y - 0.85,
-        avatarBasePosition.y + 0.12,
-      );
-      target.z = THREE.MathUtils.clamp(
-        target.z,
-        avatarBasePosition.z - 0.48,
-        avatarBasePosition.z + 0.48,
-      );
-      // The floor root is fixed. Pinning the support marker in all three axes makes
-      // the planted leg the pivot, and translates the pelvis/torso around that leg.
-      avatarRoot.position.lerp(target, footSupport === 'both' ? (bilateralBend ? 0.34 : 0.2) : 0.3);
     };
     const resize = () => {
       const { width, height } = host.getBoundingClientRect();
@@ -959,9 +845,13 @@ export function PoseAvatar3D({
     resize();
     let animation = 0;
     const draw = () => {
-      const nextTime = frameRef.current?.time;
-      const isNewLandmarkFrame = nextTime !== undefined && nextTime !== observedFrameTime;
-      if (isNewLandmarkFrame) observedFrameTime = nextTime;
+      const nextFrame = frameRef.current;
+      const nextTime = nextFrame?.time;
+      const isNewLandmarkFrame = nextFrame !== observedFrame;
+      if (isNewLandmarkFrame) {
+        observedFrame = nextFrame;
+        if (nextTime !== undefined) observedFrameTime = nextTime;
+      }
       const sampleTime =
         nextTime ?? (Number.isFinite(observedFrameTime) ? observedFrameTime + 1 : 0);
       if (exercise.id === 'knee') {
@@ -987,26 +877,12 @@ export function PoseAvatar3D({
       // screen-left moves the avatar's screen-left arm too, rather than its anatomical left.
       const left = modelSideForDisplay('left', mirrored);
       const right = modelSideForDisplay('right', mirrored);
-      // Legs follow the requested MediaPipe chains directly:
-      // 23 -> 25 -> 27 (left) and 24 -> 26 -> 28 (right).
-      // Knee flexion and floor support are intentionally independent: image-space
-      // angles drive the bones while planted feet determine the avatar root.
-      const imageLandmarks = frameRef.current?.landmarks ?? [];
-      const worldLandmarks = frameRef.current?.worldLandmarks ?? [];
-      const measuredLeftAngle =
-        (exercise.id === 'knee' ? landmarkAngle3D(worldLandmarks, [23, 25, 27]) : null) ??
-        landmarkAngle(imageLandmarks, [23, 25, 27]);
-      const measuredRightAngle =
-        (exercise.id === 'knee' ? landmarkAngle3D(worldLandmarks, [24, 26, 28]) : null) ??
-        landmarkAngle(imageLandmarks, [24, 26, 28]);
-      const leftAngle = resolvedLegAngle(legMotion.left, measuredLeftAngle, isNewLandmarkFrame);
-      const rightAngle = resolvedLegAngle(legMotion.right, measuredRightAngle, isNewLandmarkFrame);
-      const bilateralBend = isBilateralSquatBend(leftAngle, rightAngle);
-      const leftLeg = stabilizeLegFromImage(pose.leftLeg, leftAngle);
-      const rightLeg = stabilizeLegFromImage(pose.rightLeg, rightAngle);
+      // Retarget the measured hip/knee/ankle directions without replacing ankle
+      // positions with an angle-based bend. Contact and clearance are solved separately.
+      const leftLeg = pose.leftLeg;
+      const rightLeg = pose.rightLeg;
       const leftToe = reliableFootTarget(leftLeg[1], leftLeg[2], leftLeg[3]);
       const rightToe = reliableFootTarget(rightLeg[1], rightLeg[2], rightLeg[3]);
-      updateFootSupport(pose, isNewLandmarkFrame);
       apply(`${left}Shoulder`, pose.chest, pose.leftArm[0], isNewLandmarkFrame, sampleTime);
       apply(`${left}Arm`, pose.leftArm[0], pose.leftArm[1], isNewLandmarkFrame, sampleTime);
       apply(`${left}ForeArm`, pose.leftArm[1], pose.leftArm[2], isNewLandmarkFrame, sampleTime);
@@ -1035,7 +911,7 @@ export function PoseAvatar3D({
       apply(`${right}UpLeg`, rightLeg[0], rightLeg[1], isNewLandmarkFrame, sampleTime);
       apply(`${right}Leg`, rightLeg[1], rightLeg[2], isNewLandmarkFrame, sampleTime);
       apply(`${right}Foot`, rightLeg[2], rightToe, isNewLandmarkFrame, sampleTime, true);
-      anchorBodyToSupportFoot(left, right, bilateralBend);
+      groundBody(pose, left, right, isNewLandmarkFrame, sampleTime);
       if (appliedView !== viewRef.current || appliedPresetRequest !== presetRequestRef.current) {
         appliedView = viewRef.current;
         appliedPresetRequest = presetRequestRef.current;
