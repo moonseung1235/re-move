@@ -7,7 +7,25 @@ export type SymptomProfile = {
   professionalGuidance: boolean;
   updatedAt: string;
 };
-export type Preferences = { saveOriginal: boolean };
+export type RehabGoal = {
+  id: string;
+  condition: string;
+  exerciseIds: string[];
+  weekdays: number[];
+  repetitions: number;
+  targetAngle: number;
+  targetExerciseId: string;
+  side: Side;
+  updatedAt: string;
+  startedAt?: string;
+  requestNotes?: string;
+  attachment?: { id: string; name: string; type: string; size: number };
+};
+export type Preferences = {
+  saveOriginal: boolean;
+  rehabilitation?: RehabGoal;
+  following?: string[];
+};
 export type Side = 'left' | 'right';
 export type Goal = {
   id: string;

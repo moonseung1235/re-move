@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createServiceWorker } from './serviceWorkerSource';
 
 const shell =
-  '<meta name="application-name" content="Re:Move"><script src="/assets/index-unit.js"></script>';
+  '<meta name="application-name" content="ASCEND"><script src="/assets/index-unit.js"></script>';
 const html = (value = shell) => new Response(value, { headers: { 'Content-Type': 'text/html' } });
 function harness() {
   const stored = new Map<string, Response>(),

@@ -3,7 +3,7 @@ export function createServiceWorker(files: string[], revision: string) {
   return `
 const CACHE = ${JSON.stringify(`re-move-app-${revision}`)};
 const STATIC = new Set(${JSON.stringify(files)});
-const APP_MARKER = 'name="application-name" content="Re:Move"';
+const APP_MARKER = 'name="application-name" content="ASCEND"';
 const BOOT_ASSET = ${JSON.stringify(files.find((path) => /^\/assets\/index-.*\.js$/.test(path)) ?? '')};
 const isResource = path => STATIC.has(path) || path.startsWith('/models/') || path.startsWith('/mediapipe/');
 const validStatic = response => response.ok && !response.redirected && response.type !== 'opaque' && response.type !== 'opaqueredirect';
@@ -43,7 +43,7 @@ self.addEventListener('fetch', event => {
         return response;
       } catch {
         const cached = await (await caches.open(CACHE)).match('/');
-        return cached || new Response('인터넷에 연결한 뒤 Re:Move를 한 번 열어 주세요.', { status: 503, headers: { 'Content-Type': 'text/plain;charset=utf-8' } });
+        return cached || new Response('인터넷에 연결한 뒤 ASCEND를 한 번 열어 주세요.', { status: 503, headers: { 'Content-Type': 'text/plain;charset=utf-8' } });
       }
     })());
   } else if (isResource(url.pathname)) {

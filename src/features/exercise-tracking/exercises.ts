@@ -2,7 +2,7 @@ import type { Exercise, Plan } from '../../types';
 export const exercises: Exercise[] = [
   {
     id: 'knee',
-    name: '무릎 굽혔다 펴기',
+    name: '스쿼트',
     subtitle: '작은 움직임부터, 천천히',
     bodyPart: '무릎',
     duration: '약 3분',
@@ -22,7 +22,7 @@ export const exercises: Exercise[] = [
   },
   {
     id: 'shoulder',
-    name: '팔 들어 올리기',
+    name: '팔 올리기',
     subtitle: '오늘의 움직임을 가볍게',
     bodyPart: '어깨',
     duration: '약 3분',
@@ -42,7 +42,7 @@ export const exercises: Exercise[] = [
   },
   {
     id: 'elbow',
-    name: '팔꿈치 굽혔다 펴기',
+    name: '팔꿈치 굽히기',
     subtitle: '편안한 범위에서 한 번 더',
     bodyPart: '팔꿈치',
     duration: '약 2분',

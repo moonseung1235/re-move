@@ -16,7 +16,7 @@ export const emptyData = (): AppData => ({
   plans: structuredClone(defaultPlans),
   sessions: [],
   posts: [],
-  nickname: '무브',
+  nickname: 'Ascender',
 });
 export async function readData(user: string): Promise<AppData> {
   const stored = await (await db).get('data', user);

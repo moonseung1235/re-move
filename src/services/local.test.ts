@@ -112,7 +112,7 @@ describe('browser account separation and original video retention', () => {
     await writeData('account-b', b);
     expect((await readData('account-a')).nickname).toBe('Account A');
     expect((await readData('account-b')).nickname).toBe('Account B');
-    expect((await readData('local-demo')).nickname).toBe('무브');
+    expect((await readData('local-demo')).nickname).toBe('Ascender');
     await saveMedia('account-a', 'private-video', new Blob(['test-only'], { type: 'video/webm' }));
     expect(await readMedia('account-a', 'private-video')).toBeDefined();
     expect(await readMedia('account-b', 'private-video')).toBeUndefined();

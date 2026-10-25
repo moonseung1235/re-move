@@ -69,14 +69,14 @@ export default function InstallApp({
         </button>
       )}
       {visible && (
-        <Modal title={installed ? 'Re:Move 앱' : 'Re:Move 앱 설치'} onClose={close}>
+        <Modal title={installed ? 'ASCEND 앱' : 'ASCEND 앱 설치'} onClose={close}>
           <div className="install-app-intro">
-            <img src="/apple-touch-icon.png" width="72" height="72" alt="Re:Move" />
+            <img src="/apple-touch-icon.png" width="72" height="72" alt="ASCEND" />
             <h3>
               {standalone
                 ? '앱으로 실행하고 있어요'
                 : installed
-                  ? '홈 화면에서 Re:Move를 열어 주세요'
+                  ? '홈 화면에서 ASCEND를 열어 주세요'
                   : '홈 화면에서 바로 시작해요'}
             </h3>
             <p>홈 화면 아이콘 · 전체화면 · 기기 내 운동 기록</p>
@@ -124,7 +124,7 @@ export default function InstallApp({
                 </li>
               </ol>
               <p className="install-app-note">
-                추가한 Re:Move 아이콘을 누르면 앱으로 실행돼요. 첫 실행은 인터넷 연결이 필요합니다.
+                추가한 ASCEND 아이콘을 누르면 앱으로 실행돼요. 첫 실행은 인터넷 연결이 필요합니다.
               </p>
             </>
           )}

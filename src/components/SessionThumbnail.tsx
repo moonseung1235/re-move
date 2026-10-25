@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Film, Play } from 'lucide-react';
+import { PersonStanding, Play } from 'lucide-react';
 import type { Session } from '../types';
 import { readMedia } from '../services/local';
 
@@ -46,7 +46,7 @@ export default function SessionThumbnail({
         </>
       ) : (
         <>
-          <Film size={22} />
+          <PersonStanding size={38} />
           <span>분석 기록</span>
         </>
       )}

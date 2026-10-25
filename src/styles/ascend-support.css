@@ -1,0 +1,257 @@
+.ascend-app.mobile-product:not(.capture-active) main {
+  padding-bottom: 4px;
+}
+.ascend-app .session-thumbnail {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: #27563f;
+}
+.ascend-app .session-thumbnail > span:not(.thumbnail-play) {
+  display: none;
+}
+.ascend-app .session-thumbnail video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ascend-app .thumbnail-play {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  border-radius: 50%;
+  background: #fff9;
+  color: #204d3b;
+  height: 21px;
+  width: 21px;
+  display: grid;
+  place-items: center;
+}
+.ascend-app .exercise-photo {
+  background-image: url('/images/rehab-exercises.png');
+  background-size: 300% 100%;
+  background-repeat: no-repeat;
+  background-color: #ece9d3;
+}
+.ascend-app .photo-knee {
+  background-position: left center;
+}
+.ascend-app .photo-shoulder {
+  background-position: center center;
+}
+.ascend-app .photo-elbow {
+  background-position: right center;
+}
+.ascend-app .symptom-onboarding {
+  padding: 35px 8px 0;
+}
+.ascend-app .onboarding-symbol {
+  display: none;
+}
+.ascend-app .onboarding-step {
+  display: block;
+  color: #758963;
+  font-size: 11px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+.ascend-app .symptom-onboarding h1 {
+  font-size: 30px;
+  color: #234f3a;
+  line-height: 1.4;
+}
+.ascend-app .onboarding-lead {
+  font-size: 14px;
+  line-height: 1.8;
+  color: #7e8a72;
+  margin: 12px 0 24px;
+}
+.ascend-app .symptom-onboarding form {
+  background: #fff;
+  padding: 20px;
+  border-radius: 25px;
+}
+.ascend-app .symptom-onboarding .field-label {
+  margin: 0 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.ascend-app .example-symptoms {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 4px 0 20px;
+}
+.ascend-app .example-symptoms button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  background: #f3f0de;
+  color: #7b8869;
+  border: 0;
+  border-radius: 14px;
+  padding: 10px;
+  font-size: 11px;
+  text-align: left;
+}
+.ascend-app .body-area-field {
+  border: 0;
+  padding: 0;
+  margin: 0 0 18px;
+}
+.ascend-app .body-area-field legend {
+  font-size: 14px;
+  color: #556d45;
+  font-weight: 650;
+  margin-bottom: 10px;
+}
+.ascend-app .body-area-field legend > span {
+  font-size: 10px;
+  color: #98a083;
+  margin-left: 5px;
+}
+.ascend-app .body-area-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+.ascend-app .body-area-grid button {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  padding: 13px;
+  text-align: left;
+  min-height: 59px;
+  background: #f2edd8;
+  color: #61764f;
+  border-radius: 16px;
+}
+.ascend-app .body-area-grid button.selected {
+  background: #204f3d;
+  color: #fff;
+}
+.ascend-app .body-area-grid span {
+  flex: 1;
+  font-weight: 650;
+}
+.ascend-app .body-area-grid small {
+  width: 100%;
+  font-size: 10px;
+  opacity: 0.7;
+}
+.ascend-app .checkbox {
+  font-size: 12px;
+  line-height: 1.8;
+  color: #748568;
+  gap: 8px;
+}
+.ascend-app .checkbox input {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  accent-color: #204f3d;
+}
+.ascend-app .symptom-privacy {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  color: #8a957b;
+  margin: 16px 0;
+}
+.ascend-app .symptom-privacy svg {
+  flex-shrink: 0;
+}
+.ascend-app .symptom-privacy p {
+  font-size: 10px;
+  line-height: 1.8;
+}
+.ascend-app .install-app-intro {
+  text-align: center;
+  padding: 12px 0 23px;
+}
+.ascend-app .install-app-intro img {
+  display: block;
+  margin: 0 auto 15px;
+  border-radius: 18px;
+}
+.ascend-app .install-app-intro p {
+  font-size: 12px;
+  color: #81906f;
+  margin-top: 8px;
+  line-height: 1.8;
+}
+.ascend-app .install-app-steps {
+  list-style: none;
+  display: grid;
+  gap: 20px;
+  padding: 0;
+  margin: 12px 0 20px;
+}
+.ascend-app .install-app-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.ascend-app .install-app-steps li > span,
+.ascend-app .install-app-steps li > svg {
+  flex: 0 0 23px;
+  color: #28583e;
+  font-weight: 800;
+  text-align: center;
+}
+.ascend-app .install-app-steps strong {
+  display: block;
+  font-size: 14px;
+}
+.ascend-app .install-app-steps small,
+.ascend-app .install-app-note {
+  display: block;
+  font-size: 11px;
+  color: #81906f;
+  line-height: 1.8;
+  margin-top: 5px;
+}
+.ascend-app .more-row {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  text-align: left;
+  padding: 14px 0;
+  border: 0;
+  border-bottom: 1px solid #ece7d6;
+  background: none;
+}
+.ascend-app .more-row > div:not(.browse-art) {
+  flex: 1;
+}
+.ascend-app .more-row strong {
+  display: block;
+  font-size: 14px;
+  color: #32563c;
+}
+.ascend-app .more-row small {
+  display: block;
+  font-size: 11px;
+  color: #879578;
+  margin-top: 5px;
+}
+.ascend-app .comments .avatar {
+  background: #e2eabd;
+  color: #204f3d;
+}
+.ascend-app .comments .primary {
+  min-height: 40px;
+  font-size: 12px;
+  margin: 0;
+}
+.ascend-app .comments input {
+  min-height: 40px;
+  font-size: 14px;
+}

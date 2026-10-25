@@ -211,7 +211,7 @@ export default function MorePage({
           <ChevronRight size={17} />
         </button>
         <button className="more-row" onClick={onHelp}>
-          <span>Re:Move 이용 안내</span>
+          <span>ASCEND 이용 안내</span>
           <ChevronRight size={17} />
         </button>
         <button className="more-row" onClick={onAuth}>

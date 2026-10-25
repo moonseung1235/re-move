@@ -41,7 +41,7 @@ it('runs a supported native install prompt only after the user taps install', as
   await user.click(screen.getByRole('button', { name: '앱 설치' }));
   await user.click(screen.getByRole('button', { name: '앱 설치하기' }));
   expect(prompt).toHaveBeenCalledOnce();
-  expect(await screen.findByText('홈 화면에서 Re:Move를 열어 주세요')).toBeDefined();
+  expect(await screen.findByText('홈 화면에서 ASCEND를 열어 주세요')).toBeDefined();
 });
 it('detects standalone mode and hides the redundant header install button', () => {
   vi.stubGlobal('matchMedia', () => ({ matches: true }));

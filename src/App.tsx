@@ -1,4 +1,3 @@
-import BrandMark from './components/BrandMark';
 import InstallApp from './pwa/InstallApp';
 import CameraExercisePicker from './components/CameraExercisePicker';
 import { useEffect, useRef, useState } from 'react';
@@ -8,7 +7,8 @@ import {
   ArrowRight,
   Camera,
   Check,
-  ClipboardList,
+  CalendarDays,
+  MessageCircle,
   Home,
   MoreHorizontal,
   Users,
@@ -28,6 +28,7 @@ import type {
 } from './types';
 import { createId } from './utils/id';
 import { exercises, getExercise } from './features/exercise-tracking/exercises';
+import { matchedExercises } from './features/exercise-tracking/personalize';
 import type { CaptureShare } from './features/camera/recording';
 import { emptyData, readData, writeData, saveMedia, deleteMedia } from './services/local';
 import {
@@ -45,22 +46,23 @@ import Modal from './components/Modal';
 import AuthDialog from './components/AuthDialog';
 import ExerciseArt from './components/ExerciseArt';
 import SymptomForm from './pages/Onboarding/SymptomForm';
-import MobileHome from './pages/Home/MobileHome';
-import RecordsPage from './pages/Records/RecordsPage';
-import MorePage from './pages/Profile/MorePage';
-import CommunityPage from './pages/Community/CommunityPage';
-import type { FeedFilter } from './pages/Community/CommunityPage';
+import MobileHome from './pages/Ascend/Home';
+import RecordsPage from './pages/Ascend/Records';
+import MorePage from './pages/Ascend/More';
+import CommunityPage from './pages/Ascend/Community';
+import type { FeedFilter } from './pages/Ascend/Community';
 import ExercisePage from './pages/Exercise/ExercisePage';
-import SessionDetail from './pages/Records/SessionDetail';
-import GoalForm from './pages/Goals/GoalForm';
+import SessionDetail from './pages/Ascend/Feedback';
+import GoalForm from './pages/Ascend/GoalSettings';
+import RehabPlanning from './pages/Ascend/RehabPlan';
 import PlanForm from './pages/RehabPlan/PlanForm';
 import ComposeForm from './features/community/ComposeForm';
 import SharePostDialog from './features/community/SharePostDialog';
 
 const navigation: { id: Tab; label: string; icon: typeof Home }[] = [
   { id: 'home', label: '홈', icon: Home },
-  { id: 'records', label: '내 기록', icon: ClipboardList },
-  { id: 'community', label: '커뮤니티', icon: Users },
+  { id: 'records', label: '내 기록', icon: CalendarDays },
+  { id: 'community', label: '커뮤니티', icon: MessageCircle },
   { id: 'more', label: '더보기', icon: MoreHorizontal },
 ];
 function readRoute(): { tab: Tab; exerciseId?: string; postId?: string } {
@@ -72,16 +74,7 @@ function readRoute(): { tab: Tab; exerciseId?: string; postId?: string } {
   return { tab: navigation.some((item) => item.id === page) ? (page as Tab) : 'home' };
 }
 function Brand() {
-  return (
-    <div className="brand">
-      <div className="brand-symbol">
-        <BrandMark />
-      </div>
-      <span>
-        Re<span className="brand-colon">:</span>Move<span className="brand-period">.</span>
-      </span>
-    </div>
-  );
+  return <span className="ascend-wordmark">ASCEND</span>;
 }
 
 export default function App() {
@@ -97,6 +90,7 @@ export default function App() {
     [busy, setBusy] = useState(false),
     [toast, setToast] = useState(''),
     [actionError, setActionError] = useState('');
+  const [rehabPlanning, setRehabPlanning] = useState(false);
   const [editingSymptoms, setEditingSymptoms] = useState(false),
     [selected, setSelected] = useState<Exercise>(),
     [browse, setBrowse] = useState(false),
@@ -151,6 +145,12 @@ export default function App() {
       if (userId !== 'local-demo') {
         next = await loadCloud();
         next.captures = local.captures;
+        if (
+          next.preferences.rehabilitation?.id === local.preferences.rehabilitation?.id &&
+          next.preferences.rehabilitation
+        ) {
+          next.preferences.rehabilitation.attachment = local.preferences.rehabilitation?.attachment;
+        }
         next.sessions = next.sessions.map((session) => ({
           ...session,
           mediaId: local.sessions.find((s) => s.id === session.id)?.mediaId,
@@ -181,6 +181,9 @@ export default function App() {
       setTab(route.tab);
       setExerciseId(route.exerciseId);
       setFocusedPost(route.postId);
+      setGoalEditor(undefined);
+      setRehabPlanning(false);
+      setDetail(undefined);
       if (!route.exerciseId) setStartCamera(false);
       window.scrollTo({ top: 0 });
     };
@@ -195,6 +198,9 @@ export default function App() {
     setStartCamera(false);
     setCaptureReview(undefined);
     setEditingSymptoms(false);
+    setGoalEditor(undefined);
+    setDetail(undefined);
+    setRehabPlanning(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   async function update(value: AppData | ((current: AppData) => AppData), remote = true) {
@@ -363,7 +369,7 @@ export default function App() {
       url = URL.createObjectURL(blob),
       link = document.createElement('a');
     link.href = url;
-    link.download = 're-move-records.json';
+    link.download = 'ascend-records.json';
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
@@ -371,10 +377,20 @@ export default function App() {
   return (
     <AppErrorContext.Provider value={actionError}>
       <div
-        className={`app-shell mobile-product ${exerciseId ? 'capture-active' : ''} ${onboarding ? 'onboarding-mode' : ''}`}
+        className={`app-shell mobile-product ascend-app ${exerciseId ? 'capture-active' : ''} ${onboarding ? 'onboarding-mode' : ''}`}
       >
-        <header className="topbar" hidden={!!exerciseId}>
-          <button className="brand-home" aria-label="Re:Move 홈" onClick={() => navigate('home')}>
+        <header
+          className="topbar"
+          hidden={
+            !!exerciseId ||
+            !!goalEditor ||
+            !!detail ||
+            rehabPlanning ||
+            tab !== 'home' ||
+            onboarding
+          }
+        >
+          <button className="brand-home" aria-label="ASCEND 홈" onClick={() => navigate('home')}>
             <Brand />
           </button>
           <div className="topbar-right">
@@ -396,14 +412,22 @@ export default function App() {
               <button
                 className="icon-button header-camera"
                 aria-label="운동 촬영"
-                onClick={() => setSelected(exercises[0])}
+                onClick={() =>
+                  setSelected(
+                    getExercise(
+                      data.preferences.rehabilitation?.targetExerciseId ??
+                        matchedExercises(data.symptoms!)[0]?.id ??
+                        'knee',
+                    ),
+                  )
+                }
               >
                 <Camera size={23} />{' '}
               </button>
             )}
           </div>
         </header>
-        <main aria-busy={!ready || busy}>
+        <main aria-busy={!ready || busy} hidden={!!goalEditor || !!detail || rehabPlanning}>
           {!ready ? (
             <div className="loading-state">
               <Activity className="pulse" />
@@ -477,9 +501,7 @@ export default function App() {
                         onDetail={setDetail}
                         onCapture={openCapture}
                         onSelect={setSelected}
-                        onEditSymptoms={() => setEditingSymptoms(true)}
                         onRecords={() => navigate('records')}
-                        onBrowse={() => setBrowse(true)}
                       />
                     )}
                     {tab === 'records' && (
@@ -490,12 +512,27 @@ export default function App() {
                         onCapture={openCapture}
                         onDetail={setDetail}
                         onStart={() => navigate('home')}
-                        onExport={exportRecords}
                       />
                     )}
                     {tab === 'community' && (
                       <CommunityPage
                         posts={data.posts}
+                        following={data.preferences.following ?? []}
+                        onFollow={(id) =>
+                          void run(() =>
+                            update((current) => ({
+                              ...current,
+                              preferences: {
+                                ...current.preferences,
+                                following: (current.preferences.following ?? []).includes(id)
+                                  ? (current.preferences.following ?? []).filter(
+                                      (value) => value !== id,
+                                    )
+                                  : [...(current.preferences.following ?? []), id],
+                              },
+                            })),
+                          )
+                        }
                         userId={userId}
                         busy={busy}
                         filter={feedFilter}
@@ -532,9 +569,25 @@ export default function App() {
                         onPreferences={(preferences) =>
                           void run(() => update((current) => ({ ...current, preferences })))
                         }
-                        onPlan={setPlanEditor}
-                        onGoal={(id) =>
-                          setGoalEditor(data.goals.find((goal) => goal.id === id) ?? 'new')
+                        userId={userId}
+                        onPlan={() => setRehabPlanning(true)}
+                        onExport={exportRecords}
+                        onDeleteRecords={() =>
+                          void run(async () => {
+                            const mediaIds = new Set(
+                              [...dataRef.current.sessions, ...dataRef.current.captures].flatMap(
+                                (s) => (s.mediaId ? [s.mediaId] : []),
+                              ),
+                            );
+                            await update((current) => ({ ...current, sessions: [], captures: [] }));
+                            await Promise.all([...mediaIds].map((id) => deleteMedia(userId, id)));
+                            setToast('운동 기록과 원본 영상을 삭제했어요.');
+                          })
+                        }
+                        onGoal={() =>
+                          setGoalEditor(
+                            data.goals.find((goal) => goal.primary) ?? data.goals[0] ?? 'new',
+                          )
                         }
                         onOwnPosts={() => {
                           navigate('community');
@@ -555,7 +608,7 @@ export default function App() {
                 )}
                 <footer className="page-footer" hidden={!!exerciseId}>
                   <span>
-                    <Activity size={14} /> Re:Move · 나의 속도로, 한 걸음씩
+                    <Activity size={14} /> ASCEND · 나의 속도로, 한 걸음씩
                   </span>
                   <span>의료진의 진단과 치료를 대신하지 않습니다.</span>
                 </footer>
@@ -568,8 +621,18 @@ export default function App() {
             {navigation.map((item) => (
               <button
                 key={item.id}
-                aria-current={tab === item.id && !exerciseId ? 'page' : undefined}
-                className={tab === item.id && !exerciseId ? 'active' : ''}
+                aria-current={
+                  (goalEditor || rehabPlanning ? 'more' : detail ? 'records' : tab) === item.id &&
+                  !exerciseId
+                    ? 'page'
+                    : undefined
+                }
+                className={
+                  (goalEditor || rehabPlanning ? 'more' : detail ? 'records' : tab) === item.id &&
+                  !exerciseId
+                    ? 'active'
+                    : ''
+                }
                 onClick={() => navigate(item.id)}
               >
                 <item.icon size={22} />
@@ -627,23 +690,92 @@ export default function App() {
           </Modal>
         )}
         {auth && <AuthDialog onClose={() => setAuth(false)} busy={busy} run={run} />}
-        {goalEditor && (
-          <GoalForm
-            goal={goalEditor === 'new' ? undefined : goalEditor}
+        {rehabPlanning && !goalEditor && (
+          <RehabPlanning
+            goal={data.preferences.rehabilitation}
+            sessions={data.sessions}
             busy={busy}
-            onClose={() => setGoalEditor(undefined)}
-            onSave={(goal) =>
+            onBack={() => setRehabPlanning(false)}
+            onEdit={() => setGoalEditor(data.goals.find((goal) => goal.primary) ?? 'new')}
+            onApply={(notes) =>
               void run(async () => {
                 await update((current) => ({
                   ...current,
+                  preferences: {
+                    ...current.preferences,
+                    rehabilitation: current.preferences.rehabilitation
+                      ? { ...current.preferences.rehabilitation, requestNotes: notes }
+                      : undefined,
+                  },
+                }));
+                setToast('요청 사항을 계획에 저장했어요.');
+              })
+            }
+            onStart={() =>
+              void run(async () => {
+                const rehab = dataRef.current.preferences.rehabilitation;
+                if (!rehab) return;
+                await update((current) => ({
+                  ...current,
+                  preferences: {
+                    ...current.preferences,
+                    rehabilitation: {
+                      ...rehab,
+                      startedAt: rehab.startedAt ?? new Date().toISOString(),
+                    },
+                  },
+                }));
+                navigate('home');
+                setSelected(getExercise(rehab.exerciseIds[0]));
+              })
+            }
+          />
+        )}
+        {goalEditor && (
+          <GoalForm
+            goal={goalEditor === 'new' ? undefined : goalEditor}
+            rehabilitation={data.preferences.rehabilitation}
+            symptoms={data.symptoms}
+            sessions={data.sessions}
+            busy={busy}
+            onClose={() => setGoalEditor(undefined)}
+            onSave={(goal, rehabilitation, attachment) =>
+              void run(async () => {
+                const previousAttachment = dataRef.current.preferences.rehabilitation?.attachment;
+                if (attachment) {
+                  const id = `diagnosis-${createId()}`;
+                  await saveMedia(userId, id, attachment);
+                  rehabilitation.attachment = {
+                    id,
+                    name: attachment.name,
+                    type: attachment.type,
+                    size: attachment.size,
+                  };
+                }
+                await update((current) => ({
+                  ...current,
+                  preferences: { ...current.preferences, rehabilitation },
                   goals: [
                     ...current.goals
                       .filter((g) => g.id !== goal.id)
-                      .map((g) => (goal.primary ? { ...g, primary: false } : g)),
+                      .map((g) => ({ ...g, primary: false })),
                     goal,
                   ],
+                  plans: current.plans.map((plan) =>
+                    rehabilitation.exerciseIds.includes(plan.exerciseId)
+                      ? {
+                          ...plan,
+                          repetitions: rehabilitation.repetitions,
+                          frequency: `주 ${rehabilitation.weekdays.length}일`,
+                          source: 'personal' as const,
+                        }
+                      : plan,
+                  ),
                 }));
+                if (previousAttachment && previousAttachment.id !== rehabilitation.attachment?.id)
+                  await deleteMedia(userId, previousAttachment.id);
                 setGoalEditor(undefined);
+                setRehabPlanning(true);
                 setToast('목표를 저장했어요.');
               })
             }
@@ -695,7 +827,9 @@ export default function App() {
             sessions={data.sessions}
             userId={userId}
             busy={busy}
-            onClose={() => setDetail(undefined)}
+            goal={data.preferences.rehabilitation}
+            onBack={() => setDetail(undefined)}
+            onRecords={() => navigate('records')}
             onDelete={() => void run(() => removeSession(detail))}
             onShare={() => {
               setComposeMedia(undefined);
@@ -737,7 +871,7 @@ export default function App() {
                 </div>
               </li>
               <li>
-                <ClipboardList />
+                <CalendarDays />
                 <div>
                   <h3>내 기록에서 변화를 확인해요</h3>
                   <p>영상과 측정 결과를 저장하고 같은 조건의 기록끼리 비교해요.</p>

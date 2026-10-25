@@ -55,7 +55,7 @@ export default function SharePostDialog({
             onClick={async () => {
               try {
                 await navigator.share({
-                  title: 'Re:Move · 함께하는 움직임',
+                  title: 'ASCEND · 함께하는 움직임',
                   text,
                   ...(local ? {} : { url }),
                 });

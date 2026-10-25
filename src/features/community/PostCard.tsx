@@ -12,6 +12,8 @@ export default function PostCard({
   onComment,
   onDelete,
   onShare,
+  following,
+  onFollow,
 }: {
   post: Post;
   userId: string;
@@ -20,6 +22,8 @@ export default function PostCard({
   onComment: (s: string) => Promise<boolean>;
   onDelete: () => void;
   onShare: () => void;
+  following?: boolean;
+  onFollow?: () => void;
 }) {
   const [showComments, setShowComments] = useState(false),
     [comment, setComment] = useState(''),
@@ -60,6 +64,16 @@ export default function PostCard({
             })}
           </span>
         </div>
+        {post.userId !== userId && onFollow && (
+          <button
+            className="follow-button"
+            disabled={busy}
+            aria-pressed={following}
+            onClick={onFollow}
+          >
+            {following ? '팔로잉' : '팔로우'}
+          </button>
+        )}
         {post.userId === userId && (
           <button
             className="icon-button"

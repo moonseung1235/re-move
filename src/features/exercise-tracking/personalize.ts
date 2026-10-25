@@ -3,7 +3,7 @@ import { exercises } from './exercises';
 
 export const bodyAreas: { id: BodyArea; name: string; hint: string }[] = [
   { id: 'knee', name: '무릎', hint: '걷기, 계단, 무릎 움직임' },
-  { id: 'shoulder', name: '어깨', hint: '팔 들어 올리기, 어깨 움직임' },
+  { id: 'shoulder', name: '어깨', hint: '팔 올리기, 어깨 움직임' },
   { id: 'elbow', name: '팔꿈치', hint: '팔 굽히기, 팔꿈치 움직임' },
   { id: 'other', name: '다른 부위', hint: '목, 허리, 손목 등' },
 ];

@@ -71,7 +71,7 @@ describe('body landmarks without face data', () => {
       'left',
       { sourceWidth: 640, sourceHeight: 480, width: 640, height: 480 },
     );
-    expect(ctx.arc).toHaveBeenCalledTimes(22);
+    expect(ctx.arc).toHaveBeenCalledTimes(23);
     expect(ctx.fillText).toHaveBeenCalledWith('90.0°', expect.any(Number), expect.any(Number));
     expect(POSE_CONNECTIONS.every((pair) => pair.every((index) => index >= 11))).toBe(true);
   });

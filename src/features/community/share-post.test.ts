@@ -8,7 +8,7 @@ it('shares posted content and selected metrics without original media paths or p
     nickname: '테스트',
     content: '오늘의 작은 한 걸음',
     createdAt: '2026-10-24T00:00:00Z',
-    shared: { exerciseName: '무릎 굽혔다 펴기', range: 60 },
+    shared: { exerciseName: '스쿼트', range: 60 },
     mediaId: 'private-original-path',
     likes: [],
     comments: [],

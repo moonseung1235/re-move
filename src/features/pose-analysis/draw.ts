@@ -76,7 +76,7 @@ export function drawPose(
     const p = position(first),
       q = position(second);
     ctx.strokeStyle =
-      targets.includes(a) && targets.includes(b) && frame.angle !== null ? '#bdff80' : '#57e5cc';
+      targets.includes(a) && targets.includes(b) && frame.angle !== null ? '#efb52e' : '#ffffff';
     ctx.beginPath();
     ctx.moveTo(p.x, p.y);
     ctx.lineTo(q.x, q.y);
@@ -85,7 +85,7 @@ export function drawPose(
   frame.landmarks.forEach((point, index) => {
     if (index < FIRST_BODY_LANDMARK || !visible(point)) return;
     const p = position(point);
-    ctx.fillStyle = targets.includes(index) ? '#d3ff92' : '#fff';
+    ctx.fillStyle = targets.includes(index) ? '#f4a629' : '#2dd6da';
     ctx.beginPath();
     ctx.arc(p.x, p.y, lineWidth * 1.4, 0, Math.PI * 2);
     ctx.fill();
@@ -93,8 +93,24 @@ export function drawPose(
   const joint = frame.landmarks[targets[1]];
   if (frame.angle !== null && visible(joint)) {
     const p = position(joint);
+    const first = frame.landmarks[targets[0]],
+      last = frame.landmarks[targets[2]];
+    if (visible(first) && visible(last)) {
+      const a = position(first),
+        c = position(last),
+        start = Math.atan2(a.y - p.y, a.x - p.x);
+      let delta = Math.atan2(c.y - p.y, c.x - p.x) - start;
+      while (delta > Math.PI) delta -= Math.PI * 2;
+      while (delta < -Math.PI) delta += Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.arc(p.x, p.y, Math.max(16, width / 19), start, start + delta, delta < 0);
+      ctx.closePath?.();
+      ctx.fillStyle = '#efc33488';
+      ctx.fill();
+    }
     ctx.font = `bold ${Math.max(18, width / 27)}px sans-serif`;
-    ctx.fillStyle = '#d3ff92';
+    ctx.fillStyle = '#efc334';
     ctx.fillText(
       `${frame.angle.toFixed(1)}°`,
       Math.min(width - 82, Math.max(8, p.x + 13)),

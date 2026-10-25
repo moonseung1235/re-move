@@ -26,7 +26,7 @@ describe('explicit share projection', () => {
     expect(buildSharedRecord(fixture, [], [])).toEqual({});
     expect(buildSharedRecord(undefined, [], ['name', 'range'])).toEqual({});
     const shared = buildSharedRecord(fixture, [], ['name', 'range']);
-    expect(shared).toEqual({ exerciseName: '무릎 굽혔다 펴기', range: 60 });
+    expect(shared).toEqual({ exerciseName: '스쿼트', range: 60 });
     expect(shared).not.toHaveProperty('mediaId');
     expect(shared).not.toHaveProperty('side');
     expect(shared).not.toHaveProperty('frames');

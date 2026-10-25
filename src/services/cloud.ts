@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import type { AppData, Post } from '../types';
 import { emptyData } from './local';
 import { bodyOnlyData } from '../features/pose-analysis/bodyLandmarks';
+import { cloudPreferences } from './settings';
 const url = import.meta.env.VITE_SUPABASE_URL;
 const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 export const supabase = url && key ? createClient(url, key) : null;
@@ -30,7 +31,10 @@ export async function saveCloud(data: AppData) {
     plans_data: data.plans,
     sessions_data: data.sessions.map((s) => ({ ...s, mediaId: undefined })),
     display_name: data.nickname,
-    settings_data: { symptoms: data.symptoms, preferences: data.preferences },
+    settings_data: {
+      symptoms: data.symptoms,
+      preferences: cloudPreferences(data.preferences),
+    },
   });
   check(result.error);
 }

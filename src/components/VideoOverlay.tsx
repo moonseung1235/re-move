@@ -63,7 +63,7 @@ export function VideoOverlay({
       <canvas ref={canvasRef} />
       {frames.length > 0 && (
         <span className="video-label">
-          <span /> 실제 측정 · MediaPipe
+          <span /> MEDIAPIPE POSE
         </span>
       )}
     </div>

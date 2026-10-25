@@ -36,8 +36,8 @@ describe('four-tab mobile journey', () => {
     await user.type(description, '계단을 내려갈 때 오른쪽 무릎이 불편해요.');
     await user.selectOptions(screen.getByLabelText('불편한 쪽'), 'right');
     await user.click(screen.getByRole('button', { name: '나를 위한 운동 보기' }));
-    await screen.findByRole('heading', { name: '무릎 굽혔다 펴기' });
-    expect(screen.queryByRole('heading', { name: '팔 들어 올리기' })).toBeNull();
+    await screen.findByRole('heading', { name: '최근 촬영' });
+    expect(screen.getByRole('button', { name: 'ASCEND 홈' })).toBeDefined();
     const nav = screen.getByRole('navigation', { name: '주 메뉴' });
     expect(
       within(nav)
@@ -45,7 +45,32 @@ describe('four-tab mobile journey', () => {
         .map((button) => button.textContent),
     ).toEqual(['홈', '내 기록', '커뮤니티', '더보기']);
     expect((await readData('local-demo')).symptoms?.side).toBe('right');
-    await user.click(screen.getByRole('button', { name: /무릎 굽혔다 펴기.*운동 선택/ }));
+    await user.click(screen.getByRole('button', { name: '나에게 맞는 활동 목표 설정' }));
+    await screen.findByRole('heading', { name: '목표 설정' });
+    await user.type(screen.getByLabelText('병명 또는 재활 상황'), '재활 활동 목표 테스트');
+    await user.click(screen.getByRole('button', { name: '목요일' }));
+    await user.click(screen.getByRole('button', { name: '금요일' }));
+    await user.click(screen.getByRole('button', { name: '10회' }));
+    await user.click(screen.getByRole('button', { name: '목표 각도 줄이기' }));
+    await user.upload(
+      screen.getByLabelText('진단서 선택'),
+      new File(['test-only'], 'diagnosis-test.pdf', { type: 'application/pdf' }),
+    );
+    await user.click(screen.getByRole('button', { name: '저장하기' }));
+    await screen.findByRole('heading', { name: '재활 계획 수립' });
+    const savedGoal = (await readData('local-demo')).preferences.rehabilitation;
+    expect(savedGoal?.weekdays).toEqual([1, 2, 3]);
+    expect(savedGoal?.repetitions).toBe(10);
+    expect(savedGoal?.targetAngle).toBe(170);
+    expect(savedGoal?.attachment?.name).toBe('diagnosis-test.pdf');
+    await user.type(screen.getByLabelText('계획 요청 사항'), '오전 시간대');
+    await user.click(screen.getByRole('button', { name: '반영' }));
+    await waitFor(async () =>
+      expect((await readData('local-demo')).preferences.rehabilitation?.requestNotes).toBe(
+        '오전 시간대',
+      ),
+    );
+    await user.click(screen.getByRole('button', { name: '이 계획으로 시작' }));
     await user.click(screen.getByRole('button', { name: '카메라 열기' }));
     expect((await screen.findByRole('alert')).textContent).toContain('사이트 설정');
     expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(1);
@@ -56,23 +81,23 @@ describe('four-tab mobile journey', () => {
     expect(screen.queryByRole('navigation')).toBeNull();
     await user.click(screen.getByRole('button', { name: '촬영 화면 닫기' }));
     await user.click(screen.getByRole('button', { name: '더보기' }));
-    await user.click(screen.getByRole('button', { name: '내 증상 / 불편함 수정' }));
+    await user.click(screen.getByRole('button', { name: /증상 · 부위 수정/ }));
     await user.clear(screen.getByLabelText('내 증상 / 불편함'));
     await user.type(
       screen.getByLabelText('내 증상 / 불편함'),
       '어깨가 불편해서 팔을 들어 올리기 어려워요.',
     );
     await user.click(screen.getByRole('button', { name: '저장하고 운동 다시 보기' }));
-    await screen.findByRole('heading', { name: '팔 들어 올리기' });
-    expect(screen.queryByRole('heading', { name: '무릎 굽혔다 펴기' })).toBeNull();
+    await screen.findByRole('heading', { name: '최근 촬영' });
+    expect(screen.queryByRole('heading', { name: '스쿼트' })).toBeNull();
     first.unmount();
     render(<App />);
-    await screen.findByRole('heading', { name: '팔 들어 올리기' });
+    await screen.findByRole('heading', { name: '최근 촬영' });
     expect((await readData('local-demo')).symptoms?.areas).toEqual(['shoulder']);
     await user.click(screen.getByRole('button', { name: '내 기록' }));
     await screen.findByRole('heading', { name: '첫 기록을 기다리고 있어요' });
     await user.click(screen.getByRole('button', { name: '커뮤니티' }));
-    await user.click(screen.getByRole('button', { name: '이야기 나누기' }));
+    await user.click(screen.getByRole('button', { name: '게시글 작성' }));
     await user.type(screen.getByLabelText('나누고 싶은 이야기'), '오늘도 나의 속도로 한 걸음!');
     await user.click(screen.getByRole('button', { name: '게시하기' }));
     await screen.findByText('오늘도 나의 속도로 한 걸음!');

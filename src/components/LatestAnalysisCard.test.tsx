@@ -6,7 +6,7 @@ import type { AppData, Frame, Landmark, Session } from '../types';
 import { measureFrame, summarize } from '../features/pose-analysis/math';
 import { defaultPlans, exercises } from '../features/exercise-tracking/exercises';
 import { readMedia } from '../services/local';
-import MobileHome from '../pages/Home/MobileHome';
+import MobileHome from '../pages/Ascend/Home';
 import LatestAnalysisCard from './LatestAnalysisCard';
 
 vi.mock('../services/local', () => ({ readMedia: vi.fn() }));
@@ -108,28 +108,28 @@ it('loads the latest actual stored video on home and draws its measured joint an
       data={data}
       userId="account-test"
       onSelect={vi.fn()}
-      onEditSymptoms={vi.fn()}
       onRecords={vi.fn()}
-      onBrowse={vi.fn()}
       onGoal={vi.fn()}
       onDetail={vi.fn()}
       onCapture={vi.fn()}
     />,
   );
-  const video = await screen.findByLabelText('무릎 굽혔다 펴기 분석 영상');
+  const video = await screen.findByLabelText('스쿼트 분석 영상');
   expect(video.getAttribute('src')).toBe('blob:latest-stored-video');
   expect(readMedia).toHaveBeenCalledWith('account-test', 'latest-video-test');
   expect(readMedia).not.toHaveBeenCalledWith('account-test', 'older-video-test');
-  expect(ctx.fillText).toHaveBeenCalledWith('90.0°', expect.any(Number), expect.any(Number));
+  await waitFor(() =>
+    expect(ctx.fillText).toHaveBeenCalledWith('90.0°', expect.any(Number), expect.any(Number)),
+  );
   const card = screen.getByRole('region', { name: '가장 최근 운동 영상 분석' });
   expect(
-    card.compareDocumentPosition(screen.getByRole('heading', { name: '나의 운동' })) &
+    screen.getByRole('heading', { name: '최근 촬영' }).compareDocumentPosition(card) &
       Node.DOCUMENT_POSITION_FOLLOWING,
   ).toBeTruthy();
   ctx.fillText.mockClear();
   await user.click(screen.getByLabelText('분석 표시'));
   expect(ctx.fillText).not.toHaveBeenCalled();
-  expect(screen.getByLabelText('무릎 굽혔다 펴기 분석 영상')).toBe(video);
+  expect(screen.getByLabelText('스쿼트 분석 영상')).toBe(video);
   await user.click(screen.getByLabelText('분석 표시'));
   expect(ctx.fillText).toHaveBeenCalledWith('90.0°', expect.any(Number), expect.any(Number));
 });
@@ -149,7 +149,7 @@ it('keeps measurements but never fabricates a video when its private original is
     expect(readMedia).toHaveBeenCalledWith('another-device', 'latest-video-test'),
   );
   await screen.findByText('이 기기에 원본 영상이 없어요');
-  expect(screen.queryByLabelText('무릎 굽혔다 펴기 분석 영상')).toBeNull();
+  expect(screen.queryByLabelText('스쿼트 분석 영상')).toBeNull();
   expect(screen.getAllByText('90.0')).toHaveLength(2);
   await userEvent.setup().click(screen.getByRole('button', { name: '분석 자세히' }));
   expect(detail).toHaveBeenCalledWith(latest);

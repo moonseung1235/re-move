@@ -62,7 +62,7 @@ it('attaches the just-recorded video automatically and toggles optional analysis
   await user.click(screen.getByLabelText('운동 이름'));
   expect(submit).not.toHaveBeenCalled();
   await user.click(screen.getByRole('button', { name: '게시하기' }));
-  expect(submit.mock.calls[0][0].shared).toEqual({ exerciseName: '무릎 굽혔다 펴기' });
+  expect(submit.mock.calls[0][0].shared).toEqual({ exerciseName: '스쿼트' });
   expect(submit.mock.calls[0][1].type).toBe('video/webm');
   expect(submit.mock.calls[0][1].size).toBe(4);
 });
