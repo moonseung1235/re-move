@@ -20,6 +20,7 @@ afterEach(() => {
 });
 
 it('shows actionable Safari steps without claiming to install automatically', async () => {
+  vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue('iPhone Safari');
   const close = vi.fn();
   render(<InstallApp open onClose={close} />);
   expect(screen.getByText('홈 화면에 추가 → 추가')).toBeDefined();
@@ -41,7 +42,18 @@ it('runs a supported native install prompt only after the user taps install', as
   await user.click(screen.getByRole('button', { name: '앱 설치' }));
   await user.click(screen.getByRole('button', { name: '앱 설치하기' }));
   expect(prompt).toHaveBeenCalledOnce();
+  expect(await screen.findByRole('status')).toBeDefined();
+  expect(screen.queryByText('홈 화면에서 ASCEND를 열어 주세요')).toBeNull();
+  act(() => window.dispatchEvent(new Event('appinstalled')));
   expect(await screen.findByText('홈 화면에서 ASCEND를 열어 주세요')).toBeDefined();
+});
+it('shows Android installation and shortcut steps without Safari instructions', () => {
+  vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue('Android Chrome');
+  render(<InstallApp open />);
+  expect(screen.getByText('이 주소를 Chrome에서 열기')).toBeDefined();
+  expect(screen.getByText('오른쪽 위 ⋮ 메뉴 열기')).toBeDefined();
+  expect(screen.getByText(/설치가 막히면 ‘바로가기 만들기’/)).toBeDefined();
+  expect(screen.queryByText(/Safari/)).toBeNull();
 });
 it('detects standalone mode and hides the redundant header install button', () => {
   vi.stubGlobal('matchMedia', () => ({ matches: true }));

@@ -71,7 +71,7 @@ describe('four-tab mobile journey', () => {
       ),
     );
     await user.click(screen.getByRole('button', { name: '이 계획으로 시작' }));
-    await user.click(screen.getByRole('button', { name: '카메라 열기' }));
+    await user.click(await screen.findByRole('button', { name: '카메라 열기' }));
     expect((await screen.findByRole('alert')).textContent).toContain('사이트 설정');
     expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(1);
     expect((screen.getByRole('button', { name: '다시 시도' }) as HTMLButtonElement).disabled).toBe(

@@ -1,1 +1,53 @@
-{"rewrites":[{"source":"/((?!assets/|images/|models/|mediapipe/).*)","destination":"/index.html"}],"headers":[{"source":"/(.*)","headers":[{"key":"Permissions-Policy","value":"camera=(self), microphone=()"},{"key":"X-Content-Type-Options","value":"nosniff"}]}]}
+{
+  "rewrites": [
+    {
+      "source": "/((?!assets/|images/|models/|mediapipe/|manifest\\.webmanifest$|sw\\.js$|app-icon(?:-\\d+)?\\.(?:png|svg)$|apple-touch-icon\\.png$).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(self), microphone=()"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    },
+    {
+      "source": "/manifest.webmanifest",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/manifest+json"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/"
+        }
+      ]
+    }
+  ]
+}

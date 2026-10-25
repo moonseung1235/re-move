@@ -10,7 +10,7 @@
     "test": "vitest run",
     "setup:model": "node scripts/setup-model.mjs",
     "test:db": "node --test scripts/security.test.mjs",
-    "test:all": "vitest run && node --test scripts/security.test.mjs",
+    "test:all": "vitest run && node --test scripts/security.test.mjs scripts/installability.test.mjs",
     "format": "prettier --write src scripts vite.config.ts",
     "dev:lan": "vite --host 0.0.0.0"
   },
